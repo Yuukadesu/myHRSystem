@@ -187,7 +187,7 @@ function initLogout() {
         logoutBtn.addEventListener('click', async () => {
             if (confirm('确定要退出登录吗？')) {
                 try {
-                    await apiRequest('/auth/logout', { method: 'POST' });
+                    await apiRequest('http://localhost:8081/api/auth/logout', { method: 'POST' });
                 } catch (error) {
                     console.error('登出失败:', error);
                     // 即使API调用失败，也清除本地Token并跳转

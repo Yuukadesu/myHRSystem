@@ -16,7 +16,7 @@ import com.example.storage.mapper.SalaryStandardMapper;
 import com.example.storage.service.SalaryItemService;
 import com.example.storage.service.SalaryStandardItemService;
 import com.example.storage.service.SalaryStandardService;
-import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -31,11 +31,12 @@ import java.util.stream.Collectors;
  * 薪酬标准表 Service 实现类
  */
 @Service
-@RequiredArgsConstructor
 public class SalaryStandardServiceImpl extends ServiceImpl<SalaryStandardMapper, SalaryStandard> implements SalaryStandardService {
 
-    private final SalaryStandardItemService salaryStandardItemService;
-    private final SalaryItemService salaryItemService;
+    @Autowired
+    private SalaryStandardItemService salaryStandardItemService;
+    @Autowired
+    private SalaryItemService salaryItemService;
 
     @Override
     public SalaryStandard getByPositionIdAndJobTitle(Long positionId, String jobTitle) {
@@ -186,8 +187,11 @@ public class SalaryStandardServiceImpl extends ServiceImpl<SalaryStandardMapper,
         LambdaQueryWrapper<SalaryStandard> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(SalaryStandard::getPositionId, positionId)
                .eq(SalaryStandard::getJobTitle, jobTitle)
-               .eq(SalaryStandard::getStatus, SalaryStandardStatus.APPROVED.getCode());
-        return getOne(wrapper);
+               .eq(SalaryStandard::getStatus, SalaryStandardStatus.APPROVED.getCode())
+               .orderByDesc(SalaryStandard::getReviewTime) // 按复核时间降序，获取最新的
+               .last("LIMIT 1"); // 限制只返回一条
+        List<SalaryStandard> list = list(wrapper);
+        return list.isEmpty() ? null : list.get(0);
     }
 
     @Override

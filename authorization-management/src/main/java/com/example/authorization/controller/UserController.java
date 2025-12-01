@@ -5,7 +5,7 @@ import com.example.common.dto.ApiResponse;
 import com.example.common.entity.User;
 import com.example.common.exception.AuthenticationException;
 import com.example.storage.service.UserService;
-import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
@@ -17,10 +17,10 @@ import java.util.List;
  */
 @RestController
 @RequestMapping("/api/users")
-@RequiredArgsConstructor
 public class UserController {
 
-    private final UserService userService;
+    @Autowired
+    private UserService userService;
 
     /**
      * 获取当前用户信息

@@ -167,20 +167,47 @@ public class OrganizationController {
     @RequireRole({"HR_MANAGER", "SALARY_MANAGER"})
     public ApiResponse<OrganizationResponse> updateOrg(@PathVariable Long orgId,
                                                          @Valid @RequestBody UpdateOrganizationRequest request) {
-        Organization org = organizationService.getById(orgId);
-        if (org == null) {
-            return ApiResponse.error(404, "机构不存在");
-        }
+        try {
+            Organization org = organizationService.getById(orgId);
+            if (org == null) {
+                return ApiResponse.error(404, "机构不存在");
+            }
 
-        if (request.getOrgName() != null) {
-            org.setOrgName(request.getOrgName());
-        }
-        if (request.getDescription() != null) {
-            org.setDescription(request.getDescription());
-        }
+            // 更新机构名称（如果提供）
+            if (request.getOrgName() != null && !request.getOrgName().trim().isEmpty()) {
+                org.setOrgName(request.getOrgName().trim());
+            }
+            // 更新描述（如果提供，允许为空字符串）
+            if (request.getDescription() != null) {
+                org.setDescription(request.getDescription().trim());
+            }
 
-        organizationService.updateById(org);
-        return ApiResponse.success("更新成功", convertToResponse(org));
+            // 确保必填字段不为空（org_code, org_name, org_level, status）
+            if (org.getOrgName() == null || org.getOrgName().trim().isEmpty()) {
+                return ApiResponse.error(400, "机构名称不能为空");
+            }
+            if (org.getOrgCode() == null || org.getOrgCode().trim().isEmpty()) {
+                return ApiResponse.error(400, "机构编号不能为空");
+            }
+            if (org.getOrgLevel() == null) {
+                return ApiResponse.error(400, "机构级别不能为空");
+            }
+            if (org.getStatus() == null || org.getStatus().trim().isEmpty()) {
+                org.setStatus(OrgStatus.ACTIVE.getCode());
+            }
+
+            boolean updated = organizationService.updateById(org);
+            if (!updated) {
+                return ApiResponse.error(500, "更新失败");
+            }
+            
+            // 重新获取更新后的数据，确保包含所有字段
+            Organization updatedOrg = organizationService.getById(orgId);
+            return ApiResponse.success("更新成功", convertToResponse(updatedOrg));
+        } catch (Exception e) {
+            e.printStackTrace(); // 打印异常堆栈，便于调试
+            return ApiResponse.error(500, "更新失败: " + e.getMessage());
+        }
     }
 
     /**

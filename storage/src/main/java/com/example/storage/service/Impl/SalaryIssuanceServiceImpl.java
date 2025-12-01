@@ -15,7 +15,7 @@ import com.example.common.enums.EmployeeArchiveStatus;
 import com.example.common.enums.SalaryIssuanceStatus;
 import com.example.storage.mapper.SalaryIssuanceMapper;
 import com.example.storage.service.*;
-import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -33,16 +33,22 @@ import java.util.stream.Collectors;
  * 薪酬发放单表 Service 实现类
  */
 @Service
-@RequiredArgsConstructor
 public class SalaryIssuanceServiceImpl extends ServiceImpl<SalaryIssuanceMapper, SalaryIssuance> implements SalaryIssuanceService {
 
-    private final EmployeeArchiveService employeeArchiveService;
-    private final SalaryStandardService salaryStandardService;
-    private final SalaryStandardItemService salaryStandardItemService;
-    private final SalaryIssuanceDetailService salaryIssuanceDetailService;
-    private final OrganizationService organizationService;
-    private final PositionService positionService;
-    private final SalaryItemService salaryItemService;
+    @Autowired
+    private EmployeeArchiveService employeeArchiveService;
+    @Autowired
+    private SalaryStandardService salaryStandardService;
+    @Autowired
+    private SalaryStandardItemService salaryStandardItemService;
+    @Autowired
+    private SalaryIssuanceDetailService salaryIssuanceDetailService;
+    @Autowired
+    private OrganizationService organizationService;
+    @Autowired
+    private PositionService positionService;
+    @Autowired
+    private SalaryItemService salaryItemService;
 
     @Override
     public SalaryIssuance getByThirdOrgIdAndMonth(Long thirdOrgId, LocalDate issuanceMonth) {

@@ -1,7 +1,7 @@
 // Mock API实现
 // 在api.js之前加载，用于拦截API请求
 
-const USE_MOCK = true; // 设置为false则使用真实API
+const USE_MOCK = false; // 设置为false则使用真实API
 
 // Token管理函数（在api.js之前定义，供Mock API使用）
 // 直接赋值给 window，避免函数声明提升导致的重复声明问题
