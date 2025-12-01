@@ -5,53 +5,9 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="d5e2e6e7-46f5-4b74-ba83-776aae91eaa6" name="更改" comment="feat:complete func">
-      <change beforePath="$PROJECT_DIR$/.idea/compiler.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/compiler.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/authorization-management/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/authorization-management/pom.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/authorization-management/src/main/java/com/example/authorization/AuthorizationManagementApplication.java" beforeDir="false" afterPath="$PROJECT_DIR$/authorization-management/src/main/java/com/example/authorization/AuthorizationManagementApplication.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/authorization-management/src/main/java/com/example/authorization/config/GlobalExceptionHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/authorization-management/src/main/java/com/example/authorization/config/GlobalExceptionHandler.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/authorization-management/src/main/java/com/example/authorization/config/SecurityConfig.java" beforeDir="false" afterPath="$PROJECT_DIR$/authorization-management/src/main/java/com/example/authorization/config/SecurityConfig.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/authorization-management/src/main/java/com/example/authorization/controller/AuthController.java" beforeDir="false" afterPath="$PROJECT_DIR$/authorization-management/src/main/java/com/example/authorization/controller/AuthController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/authorization-management/src/main/java/com/example/authorization/controller/UserController.java" beforeDir="false" afterPath="$PROJECT_DIR$/authorization-management/src/main/java/com/example/authorization/controller/UserController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/authorization-management/src/main/java/com/example/authorization/dto/LoginRequest.java" beforeDir="false" afterPath="$PROJECT_DIR$/authorization-management/src/main/java/com/example/authorization/dto/LoginRequest.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/authorization-management/src/main/java/com/example/authorization/filter/JwtAuthenticationFilter.java" beforeDir="false" afterPath="$PROJECT_DIR$/authorization-management/src/main/java/com/example/authorization/filter/JwtAuthenticationFilter.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/authorization-management/src/main/java/com/example/authorization/service/impl/AuthServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/authorization-management/src/main/java/com/example/authorization/service/impl/AuthServiceImpl.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/authorization-management/src/main/resources/application.yml" beforeDir="false" afterPath="$PROJECT_DIR$/authorization-management/src/main/resources/application.yml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/common/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/common/pom.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/human-resource-archive-management/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/human-resource-archive-management/pom.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/human-resource-archive-management/src/main/java/com/example/human/resource/archive/management/config/WebMvcConfig.java" beforeDir="false" afterPath="$PROJECT_DIR$/human-resource-archive-management/src/main/java/com/example/human/resource/archive/management/config/WebMvcConfig.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/human-resource-archive-management/src/main/java/com/example/human/resource/archive/management/service/EmployeeArchiveManagementService.java" beforeDir="false" afterPath="$PROJECT_DIR$/human-resource-archive-management/src/main/java/com/example/human/resource/archive/management/service/EmployeeArchiveManagementService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/human-resource-archive-management/src/main/resources/application.yml" beforeDir="false" afterPath="$PROJECT_DIR$/human-resource-archive-management/src/main/resources/application.yml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/human-resource-salary-management/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/human-resource-salary-management/pom.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/human-resource-salary-management/src/main/java/com/example/human/resource/salary/management/HumanResourceSalaryManagementApplication.java" beforeDir="false" afterPath="$PROJECT_DIR$/human-resource-salary-management/src/main/java/com/example/human/resource/salary/management/HumanResourceSalaryManagementApplication.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/pom.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/storage/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/storage/pom.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/storage/src/main/java/com/example/storage/config/MyBatisPlusConfig.java" beforeDir="false" afterPath="$PROJECT_DIR$/storage/src/main/java/com/example/storage/config/MyBatisPlusConfig.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/storage/src/main/java/com/example/storage/mapper/EmployeeArchiveMapper.java" beforeDir="false" afterPath="$PROJECT_DIR$/storage/src/main/java/com/example/storage/mapper/EmployeeArchiveMapper.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/storage/src/main/java/com/example/storage/mapper/OrganizationMapper.java" beforeDir="false" afterPath="$PROJECT_DIR$/storage/src/main/java/com/example/storage/mapper/OrganizationMapper.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/storage/src/main/java/com/example/storage/mapper/PositionMapper.java" beforeDir="false" afterPath="$PROJECT_DIR$/storage/src/main/java/com/example/storage/mapper/PositionMapper.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/storage/src/main/java/com/example/storage/mapper/SalaryIssuanceDetailMapper.java" beforeDir="false" afterPath="$PROJECT_DIR$/storage/src/main/java/com/example/storage/mapper/SalaryIssuanceDetailMapper.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/storage/src/main/java/com/example/storage/mapper/SalaryIssuanceMapper.java" beforeDir="false" afterPath="$PROJECT_DIR$/storage/src/main/java/com/example/storage/mapper/SalaryIssuanceMapper.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/storage/src/main/java/com/example/storage/mapper/SalaryItemMapper.java" beforeDir="false" afterPath="$PROJECT_DIR$/storage/src/main/java/com/example/storage/mapper/SalaryItemMapper.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/storage/src/main/java/com/example/storage/mapper/SalaryStandardItemMapper.java" beforeDir="false" afterPath="$PROJECT_DIR$/storage/src/main/java/com/example/storage/mapper/SalaryStandardItemMapper.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/storage/src/main/java/com/example/storage/mapper/SalaryStandardMapper.java" beforeDir="false" afterPath="$PROJECT_DIR$/storage/src/main/java/com/example/storage/mapper/SalaryStandardMapper.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/storage/src/main/java/com/example/storage/mapper/UserMapper.java" beforeDir="false" afterPath="$PROJECT_DIR$/storage/src/main/java/com/example/storage/mapper/UserMapper.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/storage/src/main/java/com/example/storage/service/Impl/EmployeeArchiveServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/storage/src/main/java/com/example/storage/service/Impl/EmployeeArchiveServiceImpl.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/storage/src/main/java/com/example/storage/service/Impl/SalaryIssuanceServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/storage/src/main/java/com/example/storage/service/Impl/SalaryIssuanceServiceImpl.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/storage/src/main/java/com/example/storage/service/Impl/SalaryStandardServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/storage/src/main/java/com/example/storage/service/Impl/SalaryStandardServiceImpl.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/storage/src/main/resources/database/myHRSystem.sql" beforeDir="false" afterPath="$PROJECT_DIR$/storage/src/main/resources/database/myHRSystem.sql" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/system-management/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/system-management/pom.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/system-management/src/main/java/com/example/system/management/SystemManagementApplication.java" beforeDir="false" afterPath="$PROJECT_DIR$/system-management/src/main/java/com/example/system/management/SystemManagementApplication.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/system-management/src/main/java/com/example/system/management/controller/OrganizationController.java" beforeDir="false" afterPath="$PROJECT_DIR$/system-management/src/main/java/com/example/system/management/controller/OrganizationController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ui/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/ui/index.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/system-management/src/main/java/com/example/system/management/controller/PositionController.java" beforeDir="false" afterPath="$PROJECT_DIR$/system-management/src/main/java/com/example/system/management/controller/PositionController.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/ui/js/api.js" beforeDir="false" afterPath="$PROJECT_DIR$/ui/js/api.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ui/js/archive-review.js" beforeDir="false" afterPath="$PROJECT_DIR$/ui/js/archive-review.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ui/js/employee-archive.js" beforeDir="false" afterPath="$PROJECT_DIR$/ui/js/employee-archive.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ui/js/main.js" beforeDir="false" afterPath="$PROJECT_DIR$/ui/js/main.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ui/js/mock-api.js" beforeDir="false" afterPath="$PROJECT_DIR$/ui/js/mock-api.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ui/js/salary-issuance.js" beforeDir="false" afterPath="$PROJECT_DIR$/ui/js/salary-issuance.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ui/js/salary-standard.js" beforeDir="false" afterPath="$PROJECT_DIR$/ui/js/salary-standard.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ui/login.html" beforeDir="false" afterPath="$PROJECT_DIR$/ui/login.html" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -258,7 +214,7 @@
       <workItem from="1762907103340" duration="9404000" />
       <workItem from="1763458739300" duration="72000" />
       <workItem from="1764550340063" duration="1166000" />
-      <workItem from="1764551510579" duration="6053000" />
+      <workItem from="1764551510579" duration="7275000" />
     </task>
     <task id="LOCAL-00001" summary="init ui">
       <option name="closed" value="true" />
@@ -300,7 +256,15 @@
       <option name="project" value="LOCAL" />
       <updated>1764550491479</updated>
     </task>
-    <option name="localTasksCounter" value="6" />
+    <task id="LOCAL-00006" summary="feat:complete func">
+      <option name="closed" value="true" />
+      <created>1764558135137</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1764558135137</updated>
+    </task>
+    <option name="localTasksCounter" value="7" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">

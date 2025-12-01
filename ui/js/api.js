@@ -126,23 +126,24 @@ async function realApiRequest(url, options = {}) {
         },
     };
 
-    try {
-        // 如果 URL 已经是完整 URL（包含 http://），直接使用
-        // 否则使用 getBaseUrl 获取基础 URL 并拼接
-        let fullUrl;
-        if (url.startsWith('http://') || url.startsWith('https://')) {
+    // 如果 URL 已经是完整 URL（包含 http://），直接使用
+    // 否则使用 getBaseUrl 获取基础 URL 并拼接
+    let fullUrl;
+    if (url.startsWith('http://') || url.startsWith('https://')) {
+        fullUrl = url;
+        console.log('✅ 使用完整URL:', fullUrl);
+    } else {
+        const baseUrl = getBaseUrl(url);
+        if (baseUrl === null) {
+            // getBaseUrl 返回 null 表示传入的已经是完整URL（虽然不应该到这里）
             fullUrl = url;
-            console.log('✅ 使用完整URL:', fullUrl);
         } else {
-            const baseUrl = getBaseUrl(url);
-            if (baseUrl === null) {
-                // getBaseUrl 返回 null 表示传入的已经是完整URL（虽然不应该到这里）
-                fullUrl = url;
-            } else {
-                fullUrl = `${baseUrl}${url}`;
-            }
-            console.log('🔧 拼接URL - 基础URL:', baseUrl, '路径:', url, '完整URL:', fullUrl);
+            fullUrl = `${baseUrl}${url}`;
         }
+        console.log('🔧 拼接URL - 基础URL:', baseUrl, '路径:', url, '完整URL:', fullUrl);
+    }
+    
+    try {
         console.log('🌐 发送真实API请求:', fullUrl, options.method || 'GET');
         const response = await fetch(fullUrl, finalOptions);
         const data = await response.json();
@@ -162,7 +163,7 @@ async function realApiRequest(url, options = {}) {
         return data;
     } catch (error) {
         console.error('❌ API请求错误:', error);
-        console.error('请求URL:', `${getBaseUrl(url)}${url}`);
+        console.error('请求URL:', fullUrl);
         throw error;
     }
 }

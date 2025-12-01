@@ -10,6 +10,12 @@ spring:
     username: root
     password: root
 
+# JWT配置（必须与authorization-management保持一致）
+jwt:
+  secret: myHRSystemSecretKeyForJWTTokenGeneration2024PleaseChangeInProduction
+  expiration: 3600000 # Access Token过期时间：1小时（毫秒）
+  refresh-expiration: 604800000 # Refresh Token过期时间：7天（毫秒）
+
 # MyBatis-Plus配置
 mybatis-plus:
   configuration:
