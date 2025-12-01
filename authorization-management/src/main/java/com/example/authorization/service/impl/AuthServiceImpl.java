@@ -8,22 +8,26 @@ import com.example.common.entity.User;
 import com.example.common.enums.UserStatus;
 import com.example.common.exception.AuthenticationException;
 import com.example.storage.service.UserService;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 /**
  * 认证服务实现类
  */
-@Slf4j
 @Service
-@RequiredArgsConstructor
 public class AuthServiceImpl implements AuthService {
 
-    private final UserService userService;
-    private final PasswordEncoder passwordEncoder;
-    private final JwtUtil jwtUtil;
+    private static final Logger log = LoggerFactory.getLogger(AuthServiceImpl.class);
+
+    @Autowired
+    private UserService userService;
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+    @Autowired
+    private JwtUtil jwtUtil;
 
     @Override
     public LoginResponse login(LoginRequest request) {

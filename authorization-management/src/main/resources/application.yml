@@ -9,6 +9,9 @@ spring:
     url: jdbc:mysql://localhost:3306/myHRSystem?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai
     username: root
     password: root
+  sql:
+    init:
+      mode: never
 
 # JWT配置
 jwt:
@@ -26,6 +29,8 @@ mybatis-plus:
       id-type: auto
   # Mapper扫描路径
   mapper-locations: classpath*:mapper/**/*.xml
+  # 禁用类型别名扫描，避免factoryBeanObjectType错误
+  type-aliases-package: com.example.common.entity
 
 # 日志配置
 logging:

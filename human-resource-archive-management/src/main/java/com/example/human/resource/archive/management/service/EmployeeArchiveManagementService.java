@@ -6,6 +6,8 @@ import com.example.common.entity.EmployeeArchive;
 import com.example.common.entity.Organization;
 import com.example.common.entity.Position;
 import com.example.common.entity.User;
+import com.example.common.enums.EmployeeArchiveStatus;
+import com.example.common.enums.EmployeeArchiveStatus;
 import com.example.storage.service.EmployeeArchiveService;
 import com.example.storage.service.FileStorageService;
 import com.example.storage.service.OrganizationService;
@@ -239,14 +241,16 @@ public class EmployeeArchiveManagementService {
         BeanUtils.copyProperties(existingArchive, updatedArchive);
 
         // 只更新请求中提供的字段（除了不能修改的字段）
+        // 对于字符串字段，空字符串会被转换为 null（清空字段）
         if (request.getName() != null) {
-            updatedArchive.setName(request.getName());
+            updatedArchive.setName(request.getName().trim());
         }
-        if (request.getGender() != null) {
-            updatedArchive.setGender(request.getGender());
+        if (request.getGender() != null && !request.getGender().trim().isEmpty()) {
+            updatedArchive.setGender(request.getGender().trim());
         }
         if (request.getIdNumber() != null) {
-            updatedArchive.setIdNumber(request.getIdNumber());
+            String idNumber = request.getIdNumber().trim();
+            updatedArchive.setIdNumber(idNumber.isEmpty() ? null : idNumber);
         }
         if (request.getBirthday() != null) {
             updatedArchive.setBirthday(request.getBirthday());
@@ -255,76 +259,103 @@ public class EmployeeArchiveManagementService {
             updatedArchive.setAge(request.getAge());
         }
         if (request.getNationality() != null) {
-            updatedArchive.setNationality(request.getNationality());
+            String nationality = request.getNationality().trim();
+            updatedArchive.setNationality(nationality.isEmpty() ? null : nationality);
         }
         if (request.getPlaceOfBirth() != null) {
-            updatedArchive.setPlaceOfBirth(request.getPlaceOfBirth());
+            String placeOfBirth = request.getPlaceOfBirth().trim();
+            updatedArchive.setPlaceOfBirth(placeOfBirth.isEmpty() ? null : placeOfBirth);
         }
         if (request.getEthnicity() != null) {
-            updatedArchive.setEthnicity(request.getEthnicity());
+            String ethnicity = request.getEthnicity().trim();
+            updatedArchive.setEthnicity(ethnicity.isEmpty() ? null : ethnicity);
         }
         if (request.getReligiousBelief() != null) {
-            updatedArchive.setReligiousBelief(request.getReligiousBelief());
+            String religiousBelief = request.getReligiousBelief().trim();
+            updatedArchive.setReligiousBelief(religiousBelief.isEmpty() ? null : religiousBelief);
         }
         if (request.getPoliticalStatus() != null) {
-            updatedArchive.setPoliticalStatus(request.getPoliticalStatus());
+            String politicalStatus = request.getPoliticalStatus().trim();
+            updatedArchive.setPoliticalStatus(politicalStatus.isEmpty() ? null : politicalStatus);
         }
         if (request.getEducationLevel() != null) {
-            updatedArchive.setEducationLevel(request.getEducationLevel());
+            String educationLevel = request.getEducationLevel().trim();
+            updatedArchive.setEducationLevel(educationLevel.isEmpty() ? null : educationLevel);
         }
         if (request.getMajor() != null) {
-            updatedArchive.setMajor(request.getMajor());
+            String major = request.getMajor().trim();
+            updatedArchive.setMajor(major.isEmpty() ? null : major);
         }
         if (request.getEmail() != null) {
-            updatedArchive.setEmail(request.getEmail());
+            String email = request.getEmail().trim();
+            updatedArchive.setEmail(email.isEmpty() ? null : email);
         }
         if (request.getPhone() != null) {
-            updatedArchive.setPhone(request.getPhone());
+            String phone = request.getPhone().trim();
+            updatedArchive.setPhone(phone.isEmpty() ? null : phone);
         }
         if (request.getQq() != null) {
-            updatedArchive.setQq(request.getQq());
+            String qq = request.getQq().trim();
+            updatedArchive.setQq(qq.isEmpty() ? null : qq);
         }
         if (request.getMobile() != null) {
-            updatedArchive.setMobile(request.getMobile());
+            String mobile = request.getMobile().trim();
+            updatedArchive.setMobile(mobile.isEmpty() ? null : mobile);
         }
         if (request.getAddress() != null) {
-            updatedArchive.setAddress(request.getAddress());
+            String address = request.getAddress().trim();
+            updatedArchive.setAddress(address.isEmpty() ? null : address);
         }
         if (request.getPostalCode() != null) {
-            updatedArchive.setPostalCode(request.getPostalCode());
+            String postalCode = request.getPostalCode().trim();
+            updatedArchive.setPostalCode(postalCode.isEmpty() ? null : postalCode);
         }
         if (request.getHobby() != null) {
-            updatedArchive.setHobby(request.getHobby());
+            String hobby = request.getHobby().trim();
+            updatedArchive.setHobby(hobby.isEmpty() ? null : hobby);
         }
         if (request.getPersonalResume() != null) {
-            updatedArchive.setPersonalResume(request.getPersonalResume());
+            String personalResume = request.getPersonalResume().trim();
+            updatedArchive.setPersonalResume(personalResume.isEmpty() ? null : personalResume);
         }
         if (request.getFamilyRelationship() != null) {
-            updatedArchive.setFamilyRelationship(request.getFamilyRelationship());
+            String familyRelationship = request.getFamilyRelationship().trim();
+            updatedArchive.setFamilyRelationship(familyRelationship.isEmpty() ? null : familyRelationship);
         }
         if (request.getRemarks() != null) {
-            updatedArchive.setRemarks(request.getRemarks());
+            String remarks = request.getRemarks().trim();
+            updatedArchive.setRemarks(remarks.isEmpty() ? null : remarks);
         }
-        if (request.getJobTitle() != null) {
-            updatedArchive.setJobTitle(request.getJobTitle());
+        if (request.getJobTitle() != null && !request.getJobTitle().trim().isEmpty()) {
+            updatedArchive.setJobTitle(request.getJobTitle().trim());
         }
         if (request.getSalaryStandardId() != null) {
             updatedArchive.setSalaryStandardId(request.getSalaryStandardId());
         }
         if (request.getPhotoUrl() != null) {
-            updatedArchive.setPhotoUrl(request.getPhotoUrl());
+            String photoUrl = request.getPhotoUrl().trim();
+            updatedArchive.setPhotoUrl(photoUrl.isEmpty() ? null : photoUrl);
         }
 
-        // 执行复核
+        // 执行复核：更新档案信息并将状态从 PENDING_REVIEW 改为 NORMAL
         boolean success = employeeArchiveService.approveReviewWithUpdate(
                 archiveId,
                 updatedArchive,
                 reviewerId,
-                request.getReviewComments()
+                request.getReviewComments() != null ? request.getReviewComments() : "复核通过"
         );
 
         if (!success) {
-            throw new RuntimeException("复核失败");
+            throw new RuntimeException("复核失败：更新档案信息失败");
+        }
+        
+        // 验证更新是否成功：重新查询档案，确认状态已更新为 NORMAL
+        EmployeeArchive verifiedArchive = employeeArchiveService.getById(archiveId);
+        if (verifiedArchive == null) {
+            throw new RuntimeException("复核失败：无法验证更新结果");
+        }
+        if (!EmployeeArchiveStatus.NORMAL.getCode().equals(verifiedArchive.getStatus())) {
+            throw new RuntimeException("复核失败：档案状态未正确更新为正常状态");
         }
 
         EmployeeArchive archive = employeeArchiveService.getById(archiveId);

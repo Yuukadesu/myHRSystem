@@ -2,14 +2,12 @@ package com.example.storage.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.example.common.entity.EmployeeArchive;
-import org.apache.ibatis.annotations.Mapper;
 
 import java.util.List;
 
 /**
  * 员工档案表 Mapper 接口
  */
-@Mapper
 public interface EmployeeArchiveMapper extends BaseMapper<EmployeeArchive> {
     /**
      * 根据三级机构ID查询员工档案列表

@@ -2,6 +2,7 @@ package com.example.human.resource.archive.management.config;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
@@ -9,7 +10,7 @@ import java.nio.file.Paths;
 
 /**
  * Web MVC 配置类
- * 用于配置静态资源访问
+ * 用于配置静态资源访问和CORS
  */
 @Configuration
 public class WebMvcConfig implements WebMvcConfigurer {
@@ -24,6 +25,16 @@ public class WebMvcConfig implements WebMvcConfigurer {
         String uploadDir = Paths.get(uploadPath).toAbsolutePath().toString();
         registry.addResourceHandler("/uploads/**")
                 .addResourceLocations("file:" + uploadDir + "/");
+    }
+
+    @Override
+    public void addCorsMappings(CorsRegistry registry) {
+        registry.addMapping("/**")
+                .allowedOriginPatterns("*")
+                .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH")
+                .allowedHeaders("*")
+                .allowCredentials(true)
+                .maxAge(3600);
     }
 }
 

@@ -1,6 +1,6 @@
-package com.example.authorization.config;
+package com.example.human.resource.archive.management.config;
 
-import com.example.authorization.filter.JwtAuthenticationFilter;
+import com.example.human.resource.archive.management.filter.JwtAuthenticationFilter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -44,11 +44,7 @@ public class SecurityConfig {
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             // 配置请求授权
             .authorizeHttpRequests(auth -> auth
-                // 登录、刷新Token、验证Token接口允许匿名访问
-                .requestMatchers("/api/auth/login", "/api/auth/refresh", "/api/auth/validate").permitAll()
-                // 登出接口需要认证（但允许通过过滤器）
-                .requestMatchers("/api/auth/logout").authenticated()
-                // 其他接口需要认证
+                // 所有接口都需要认证
                 .anyRequest().authenticated()
             )
             // 添加JWT过滤器

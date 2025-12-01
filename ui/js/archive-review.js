@@ -276,11 +276,12 @@ function showReviewArchiveForm(archive) {
                     <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px;">
                         <div class="form-group">
                             <label>姓名 <span style="color: red;">*</span></label>
-                            <input type="text" id="reviewName" class="form-control" value="${archive.name || ''}" required>
+                            <input type="text" id="reviewModalName" class="form-control" value="${archive.name || ''}" required>
                         </div>
                         <div class="form-group">
                             <label>性别 <span style="color: red;">*</span></label>
-                            <select id="reviewGender" class="form-control" required>
+                            <select id="reviewModalGender" class="form-control" required>
+                                <option value="" ${!archive.gender || (archive.gender !== 'MALE' && archive.gender !== 'FEMALE') ? 'selected' : ''}>选择性别</option>
                                 <option value="MALE" ${archive.gender === 'MALE' ? 'selected' : ''}>男</option>
                                 <option value="FEMALE" ${archive.gender === 'FEMALE' ? 'selected' : ''}>女</option>
                             </select>
@@ -493,9 +494,10 @@ function showReviewArchiveForm(archive) {
     const { modal, closeModal } = createModal('复核档案', modalContent);
     window.currentReviewModal = { modal, closeModal };
     
-    // 设置出生日期变化监听
-    const birthdayInput = document.getElementById('reviewBirthday');
-    const ageInput = document.getElementById('reviewAge');
+    // 设置出生日期变化监听（从模态框中获取）
+    const modalBody = modal.querySelector('.modal-body');
+    const birthdayInput = modalBody?.querySelector('#reviewBirthday') || document.getElementById('reviewBirthday');
+    const ageInput = modalBody?.querySelector('#reviewAge') || document.getElementById('reviewAge');
     if (birthdayInput && ageInput) {
         birthdayInput.addEventListener('change', () => {
             if (birthdayInput.value) {
@@ -539,42 +541,90 @@ async function loadReviewSalaryStandard(positionId, jobTitle, currentSalaryStand
 async function submitReviewArchive(event, archiveId) {
     event.preventDefault();
     
+    // 从表单中直接获取元素（表单提交时，元素肯定在DOM中）
+    const form = event.target;
+    const nameEl = form.querySelector('#reviewModalName') || document.getElementById('reviewModalName');
+    const genderEl = form.querySelector('#reviewModalGender') || document.getElementById('reviewModalGender');
+    
+    if (!nameEl || !genderEl) {
+        showMessage('无法找到表单字段，请刷新页面重试', 'error');
+        console.error('❌ 找不到表单字段:');
+        console.error('  - nameEl:', nameEl);
+        console.error('  - genderEl:', genderEl);
+        console.error('  - form:', form);
+        return;
+    }
+    
+    const nameValue = nameEl.value?.trim() || '';
+    const genderValue = genderEl.value || '';
+    
+    // 从表单中获取所有字段
+    const getFormEl = (id) => form.querySelector(`#${id}`) || document.getElementById(id);
+    
     const formData = {
-        name: document.getElementById('reviewName').value.trim(),
-        gender: document.getElementById('reviewGender').value,
-        idNumber: document.getElementById('reviewIdNumber').value.trim(),
-        birthday: document.getElementById('reviewBirthday').value || null,
-        age: parseInt(document.getElementById('reviewAge').value) || null,
-        nationality: document.getElementById('reviewNationality').value.trim() || '中国',
-        placeOfBirth: document.getElementById('reviewPlaceOfBirth').value.trim(),
-        ethnicity: document.getElementById('reviewEthnicity').value.trim(),
-        religiousBelief: document.getElementById('reviewReligiousBelief').value.trim(),
-        politicalStatus: document.getElementById('reviewPoliticalStatus').value.trim(),
-        educationLevel: document.getElementById('reviewEducationLevel').value.trim(),
-        major: document.getElementById('reviewMajor').value.trim(),
-        jobTitle: document.getElementById('reviewJobTitle').value,
-        email: document.getElementById('reviewEmail').value.trim(),
-        phone: document.getElementById('reviewPhone').value.trim(),
-        qq: document.getElementById('reviewQq').value.trim(),
-        mobile: document.getElementById('reviewMobile').value.trim(),
-        address: document.getElementById('reviewAddress').value.trim(),
-        postalCode: document.getElementById('reviewPostalCode').value.trim(),
-        hobby: document.getElementById('reviewHobby').value.trim(),
-        personalResume: document.getElementById('reviewPersonalResume').value.trim(),
-        familyRelationship: document.getElementById('reviewFamilyRelationship').value.trim(),
-        remarks: document.getElementById('reviewRemarks').value.trim(),
-        salaryStandardId: parseInt(document.getElementById('reviewSalaryStandardId').value) || null
+        name: nameValue,
+        gender: genderValue,
+        idNumber: getFormEl('reviewIdNumber')?.value.trim() || '',
+        birthday: getFormEl('reviewBirthday')?.value || null,
+        age: parseInt(getFormEl('reviewAge')?.value) || null,
+        nationality: getFormEl('reviewNationality')?.value.trim() || '中国',
+        placeOfBirth: getFormEl('reviewPlaceOfBirth')?.value.trim() || '',
+        ethnicity: getFormEl('reviewEthnicity')?.value.trim() || '',
+        religiousBelief: getFormEl('reviewReligiousBelief')?.value.trim() || '',
+        politicalStatus: getFormEl('reviewPoliticalStatus')?.value.trim() || '',
+        educationLevel: getFormEl('reviewEducationLevel')?.value.trim() || '',
+        major: getFormEl('reviewMajor')?.value.trim() || '',
+        jobTitle: getFormEl('reviewJobTitle')?.value || '',
+        email: getFormEl('reviewEmail')?.value.trim() || '',
+        phone: getFormEl('reviewPhone')?.value.trim() || '',
+        qq: getFormEl('reviewQq')?.value.trim() || '',
+        mobile: getFormEl('reviewMobile')?.value.trim() || '',
+        address: getFormEl('reviewAddress')?.value.trim() || '',
+        postalCode: getFormEl('reviewPostalCode')?.value.trim() || '',
+        hobby: getFormEl('reviewHobby')?.value.trim() || '',
+        personalResume: getFormEl('reviewPersonalResume')?.value.trim() || '',
+        familyRelationship: getFormEl('reviewFamilyRelationship')?.value.trim() || '',
+        remarks: getFormEl('reviewRemarks')?.value.trim() || '',
+        salaryStandardId: parseInt(getFormEl('reviewSalaryStandardId')?.value) || null
     };
     
     // 验证必填字段
+    console.log('🔍 验证表单数据:');
+    console.log('  - 姓名:', formData.name, '(原始值:', nameValue, ')');
+    console.log('  - 性别:', formData.gender, '(原始值:', genderValue, ')');
+    console.log('  - 姓名元素存在:', !!nameEl);
+    console.log('  - 性别元素存在:', !!genderEl);
+    console.log('  - 表单:', form);
+    
     if (!formData.name || !formData.gender) {
         showMessage('请填写姓名和性别', 'error');
+        console.error('❌ 验证失败 - 表单数据:', formData);
+        console.error('❌ 姓名字段元素:', nameEl, '值:', nameValue);
+        console.error('❌ 性别字段元素:', genderEl, '值:', genderValue);
+        console.error('❌ 表单:', form);
+        // 高亮显示空字段
+        if (!formData.name && nameEl) {
+            nameEl.style.borderColor = '#ff4d4f';
+            nameEl.focus();
+        }
+        if (!formData.gender && genderEl) {
+            genderEl.style.borderColor = '#ff4d4f';
+            if (formData.name) genderEl.focus();
+        }
         return;
     }
     
     try {
-        // 使用复核时修改接口
-        await EmployeeArchiveAPI.reviewWithModify(archiveId, formData);
+        // 清理表单数据：保留所有字段，包括空字符串（后端会处理）
+        // 注意：后端会将空字符串转换为 null，所以这里直接传递所有字段
+        const reviewData = {
+            ...formData,
+            approve: true,
+            reviewComments: '复核通过' // 可选：可以添加复核意见
+        };
+        
+        console.log('📤 发送复核数据:', reviewData);
+        await EmployeeArchiveAPI.reviewWithModify(archiveId, reviewData);
         showMessage('复核通过，档案已生效', 'success');
         if (window.currentReviewModal && window.currentReviewModal.closeModal) {
             window.currentReviewModal.closeModal();

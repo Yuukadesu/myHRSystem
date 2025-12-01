@@ -23,11 +23,11 @@ async function loadArchiveRegisterPage() {
                         </div>
                         <div class="form-group">
                             <label>姓名 <span style="color: red;">*</span></label>
-                            <input type="text" id="name" class="form-control" placeholder="输入员工姓名" required>
+                            <input type="text" id="name" class="form-control" placeholder="输入员工姓名">
                         </div>
                         <div class="form-group">
                             <label>性别 <span style="color: red;">*</span></label>
-                            <select id="gender" class="form-control" required>
+                            <select id="gender" class="form-control">
                                 <option value="">选择性别</option>
                                 <option value="MALE">男</option>
                                 <option value="FEMALE">女</option>
@@ -202,19 +202,19 @@ async function loadArchiveRegisterPage() {
                     <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px;">
                         <div class="form-group">
                             <label>一级机构 <span style="color: red;">*</span></label>
-                            <select id="firstOrgId" class="form-control" required onchange="onFirstOrgChange()">
+                            <select id="firstOrgId" class="form-control" onchange="onFirstOrgChange()">
                                 <option value="">选择一级机构</option>
                             </select>
                         </div>
                         <div class="form-group">
                             <label>二级机构 <span style="color: red;">*</span></label>
-                            <select id="secondOrgId" class="form-control" required onchange="onSecondOrgChange()">
+                            <select id="secondOrgId" class="form-control" onchange="onSecondOrgChange()">
                                 <option value="">选择二级机构</option>
                             </select>
                         </div>
                         <div class="form-group">
                             <label>三级机构 <span style="color: red;">*</span></label>
-                            <select id="thirdOrgId" class="form-control" required onchange="onThirdOrgChange()">
+                            <select id="thirdOrgId" class="form-control" onchange="onThirdOrgChange()">
                                 <option value="">选择三级机构</option>
                             </select>
                         </div>
@@ -222,13 +222,13 @@ async function loadArchiveRegisterPage() {
                     <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; margin-top: 20px;">
                         <div class="form-group">
                             <label>职位名称 <span style="color: red;">*</span></label>
-                            <select id="positionId" class="form-control" required onchange="onPositionChange()">
+                            <select id="positionId" class="form-control" onchange="onPositionChange()">
                                 <option value="">选择职位名称</option>
                             </select>
                         </div>
                         <div class="form-group">
                             <label>职称 <span style="color: red;">*</span></label>
-                            <select id="jobTitle" class="form-control" required onchange="onJobTitleChange()">
+                            <select id="jobTitle" class="form-control" onchange="onJobTitleChange()">
                                 <option value="">选择职称</option>
                                 <option value="JUNIOR">初级</option>
                                 <option value="INTERMEDIATE">中级</option>
@@ -237,7 +237,7 @@ async function loadArchiveRegisterPage() {
                         </div>
                         <div class="form-group">
                             <label>薪酬标准 <span style="color: red;">*</span></label>
-                            <select id="salaryStandardId" class="form-control" required>
+                            <select id="salaryStandardId" class="form-control">
                                 <option value="">选择薪酬标准</option>
                             </select>
                         </div>
@@ -577,9 +577,35 @@ async function submitArchive(event) {
     };
     
     // 验证必填字段
-    if (!formData.name || !formData.gender || !formData.firstOrgId || !formData.secondOrgId || 
-        !formData.thirdOrgId || !formData.positionId || !formData.jobTitle) {
-        showMessage('请填写所有必填字段', 'error');
+    const missingFields = [];
+    if (!formData.name) missingFields.push('姓名');
+    if (!formData.gender) missingFields.push('性别');
+    if (!formData.firstOrgId) missingFields.push('一级机构');
+    if (!formData.secondOrgId) missingFields.push('二级机构');
+    if (!formData.thirdOrgId) missingFields.push('三级机构');
+    if (!formData.positionId) missingFields.push('职位名称');
+    if (!formData.jobTitle) missingFields.push('职称');
+    if (!formData.salaryStandardId) missingFields.push('薪酬标准');
+    
+    if (missingFields.length > 0) {
+        showMessage('请填写以下必填字段：' + missingFields.join('、'), 'error');
+        // 高亮显示缺失的字段
+        missingFields.forEach(field => {
+            let element = null;
+            if (field === '姓名') element = document.getElementById('name');
+            else if (field === '性别') element = document.getElementById('gender');
+            else if (field === '一级机构') element = document.getElementById('firstOrgId');
+            else if (field === '二级机构') element = document.getElementById('secondOrgId');
+            else if (field === '三级机构') element = document.getElementById('thirdOrgId');
+            else if (field === '职位名称') element = document.getElementById('positionId');
+            else if (field === '职称') element = document.getElementById('jobTitle');
+            else if (field === '薪酬标准') element = document.getElementById('salaryStandardId');
+            
+            if (element) {
+                element.style.borderColor = '#ff4d4f';
+                element.focus();
+            }
+        });
         return;
     }
     

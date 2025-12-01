@@ -2,14 +2,12 @@ package com.example.storage.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.example.common.entity.SalaryStandard;
-import org.apache.ibatis.annotations.Mapper;
 
 import java.util.List;
 
 /**
  * 薪酬标准表 Mapper 接口
  */
-@Mapper
 public interface SalaryStandardMapper extends BaseMapper<SalaryStandard> {
     /**
      * 根据职位ID和职称查询薪酬标准

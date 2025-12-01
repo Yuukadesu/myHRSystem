@@ -2,14 +2,12 @@ package com.example.storage.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.example.common.entity.Position;
-import org.apache.ibatis.annotations.Mapper;
 
 import java.util.List;
 
 /**
  * 职位表 Mapper 接口
  */
-@Mapper
 public interface PositionMapper extends BaseMapper<Position> {
     /**
      * 根据三级机构ID查询职位列表

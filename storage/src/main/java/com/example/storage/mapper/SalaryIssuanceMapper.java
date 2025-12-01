@@ -2,7 +2,6 @@ package com.example.storage.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.example.common.entity.SalaryIssuance;
-import org.apache.ibatis.annotations.Mapper;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -10,7 +9,6 @@ import java.util.List;
 /**
  * 薪酬发放单表 Mapper 接口
  */
-@Mapper
 public interface SalaryIssuanceMapper extends BaseMapper<SalaryIssuance> {
     /**
      * 根据三级机构ID和发放月份查询薪酬发放单

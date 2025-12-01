@@ -176,11 +176,47 @@
         </div>
     </div>
 
-    <script src="js/mock-data.js"></script>
-    <script src="js/mock-api.js"></script>
+    <!-- Mock文件已禁用，使用真实API -->
+    <!-- <script src="js/mock-data.js"></script> -->
+    <!-- <script src="js/mock-api.js"></script> -->
+    <script src="js/clear-mock.js"></script>
     <script src="js/api.js"></script>
     <script>
-        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+        // 确保 apiRequest 已加载
+        console.log('🔍 检查 apiRequest:', typeof window.apiRequest, window.apiRequest);
+        
+        // 如果 apiRequest 未定义，等待它加载
+        if (typeof window.apiRequest !== 'function' || window.apiRequest.toString().includes('尚未初始化')) {
+            console.warn('⚠️ apiRequest 尚未就绪，等待加载...');
+            
+            // 监听自定义事件
+            window.addEventListener('apiRequestReady', function() {
+                console.log('✅ 收到 apiRequestReady 事件，开始绑定登录表单');
+                bindLoginForm();
+            }, { once: true });
+            
+            // 轮询检查（最多等待5秒）
+            let attempts = 0;
+            const checkInterval = setInterval(() => {
+                attempts++;
+                if (typeof window.apiRequest === 'function' && !window.apiRequest.toString().includes('尚未初始化')) {
+                    clearInterval(checkInterval);
+                    console.log('✅ apiRequest 已就绪（轮询检查），开始绑定登录表单');
+                    bindLoginForm();
+                } else if (attempts >= 100) {
+                    clearInterval(checkInterval);
+                    console.error('❌ apiRequest 加载超时！');
+                    alert('系统初始化失败：无法加载 API 请求函数。请清除浏览器缓存（Ctrl+Shift+R）后重试');
+                }
+            }, 50);
+        } else {
+            console.log('✅ apiRequest 已就绪，立即绑定登录表单');
+            bindLoginForm();
+        }
+        
+        // 绑定登录表单的函数
+        function bindLoginForm() {
+            document.getElementById('loginForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             
             const username = document.getElementById('username').value.trim();
@@ -196,18 +232,27 @@
             loginBtn.textContent = '登录中...';
             
             try {
-                const response = await window.apiRequest('/auth/login', {
+                const response = await window.apiRequest('http://localhost:8081/api/auth/login', {
                     method: 'POST',
                     body: JSON.stringify({ username, password }),
                 });
                 
                 console.log('登录响应:', response); // 调试用
                 
-                if (response && response.code === 200 && response.data && response.data.token) {
-                    window.setToken(response.data.token);
-                    window.location.href = 'index.html';
+                if (response && response.code === 200 && response.data) {
+                    // 优先使用 token，如果没有则使用 accessToken
+                    const token = response.data.token || response.data.accessToken;
+                    if (token && token.trim().length > 0) {
+                        console.log('保存Token:', token.substring(0, 20) + '...'); // 只显示前20个字符
+                        window.setToken(token);
+                        window.location.href = 'index.html';
+                    } else {
+                        console.error('Token为空或无效:', response.data);
+                        alert('登录失败：未获取到有效的Token');
+                    }
                 } else {
                     const errorMsg = response?.message || '未获取到Token';
+                    console.error('登录失败:', errorMsg, response);
                     alert('登录失败：' + errorMsg);
                 }
             } catch (error) {
@@ -217,7 +262,8 @@
                 loginBtn.disabled = false;
                 loginBtn.textContent = '登录';
             }
-        });
+            });
+        }
         
         // 如果已经登录，直接跳转
         if (window.getToken && window.getToken()) {

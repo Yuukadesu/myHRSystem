@@ -1,4 +1,4 @@
-package com.example.authorization.filter;
+package com.example.human.resource.salary.management.filter;
 
 import com.example.common.util.JwtUtil;
 import jakarta.servlet.FilterChain;
@@ -40,8 +40,15 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         // 获取Token
         String token = getTokenFromRequest(request);
 
-        if (StringUtils.hasText(token) && jwtUtil.validateToken(token)) {
+        if (StringUtils.hasText(token)) {
             try {
+                // 验证Token
+                if (!jwtUtil.validateToken(token)) {
+                    log.warn("Token验证失败: {}", request.getRequestURI());
+                    filterChain.doFilter(request, response);
+                    return;
+                }
+
                 // 验证是否为Access Token（刷新接口除外）
                 String requestPath = request.getRequestURI();
                 if (!requestPath.equals("/api/auth/refresh") && jwtUtil.isRefreshToken(token)) {
@@ -54,6 +61,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 String username = jwtUtil.getUsernameFromToken(token);
                 String role = jwtUtil.getRoleFromToken(token);
 
+                log.debug("JWT认证成功 - 用户: {}, 角色: {}, 路径: {}", username, role, requestPath);
+
                 // 创建认证对象
                 UsernamePasswordAuthenticationToken authentication =
                         new UsernamePasswordAuthenticationToken(
@@ -65,8 +74,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 // 设置到Security上下文
                 SecurityContextHolder.getContext().setAuthentication(authentication);
             } catch (Exception e) {
-                log.error("JWT认证失败: {}", e.getMessage());
+                log.error("JWT认证失败: {}", e.getMessage(), e);
             }
+        } else {
+            log.debug("请求中未找到Token: {}", request.getRequestURI());
         }
 
         filterChain.doFilter(request, response);

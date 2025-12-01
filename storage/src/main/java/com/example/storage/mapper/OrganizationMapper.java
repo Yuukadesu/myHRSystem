@@ -2,14 +2,12 @@ package com.example.storage.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.example.common.entity.Organization;
-import org.apache.ibatis.annotations.Mapper;
 
 import java.util.List;
 
 /**
  * 机构表 Mapper 接口
  */
-@Mapper
 public interface OrganizationMapper extends BaseMapper<Organization> {
     /**
      * 根据父机构ID查询子机构列表

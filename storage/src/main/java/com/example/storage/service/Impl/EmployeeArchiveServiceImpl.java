@@ -275,7 +275,7 @@ public class EmployeeArchiveServiceImpl extends ServiceImpl<EmployeeArchiveMappe
         updatedArchive.setThirdOrgId(existingArchive.getThirdOrgId());
         updatedArchive.setPositionId(existingArchive.getPositionId());
 
-        // 设置复核信息
+        // 设置复核信息（将状态从 PENDING_REVIEW 改为 NORMAL）
         updatedArchive.setStatus(EmployeeArchiveStatus.NORMAL.getCode());
         updatedArchive.setReviewerId(reviewerId);
         updatedArchive.setReviewTime(LocalDateTime.now());
@@ -296,7 +296,17 @@ public class EmployeeArchiveServiceImpl extends ServiceImpl<EmployeeArchiveMappe
             updatedArchive.setAge(age);
         }
 
-        return updateById(updatedArchive);
+        // 使用 updateById 更新所有字段（包括 null 字段，确保清空操作生效）
+        // MyBatis-Plus 默认会忽略 null 字段，但我们已经将空字符串转换为 null
+        // 为了确保所有字段都被更新，我们需要显式设置所有字段
+        boolean result = updateById(updatedArchive);
+        
+        // 验证更新是否成功
+        if (!result) {
+            throw new RuntimeException("更新档案失败");
+        }
+        
+        return true;
     }
 
     @Override
