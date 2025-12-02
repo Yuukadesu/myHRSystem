@@ -122,5 +122,15 @@ public interface SalaryIssuanceService extends IService<SalaryIssuance> {
      * @return 分页结果
      */
     IPage<SalaryIssuance> getPendingReviewPage(int page, int size);
+
+    /**
+     * 获取用于登记的员工明细列表
+     * 根据三级机构ID和发放月份获取员工明细（包含薪酬标准信息）
+     *
+     * @param thirdOrgId    三级机构ID
+     * @param issuanceMonth 发放月份（可选，默认当前月份）
+     * @return 员工明细列表
+     */
+    List<com.example.common.dto.SalaryIssuanceDetailResponse> getRegistrationDetails(Long thirdOrgId, String issuanceMonth);
 }
 

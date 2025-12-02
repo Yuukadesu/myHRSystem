@@ -18,18 +18,22 @@ import java.util.stream.Collectors;
 
 /**
  * 机构关系设置 Controller
+ * 只有人力资源经理可以访问
  */
 @RestController
 @RequestMapping("/api/organizations")
 @RequiredArgsConstructor
+@RequireRole({"HR_MANAGER"})
 public class OrganizationController {
 
     private final OrganizationService organizationService;
 
     /**
      * 获取一级机构列表
+     * 人事专员和人事经理都可以访问（用于档案登记）
      */
     @GetMapping("/level1")
+    @RequireRole({"HR_MANAGER", "HR_SPECIALIST"})
     public ApiResponse<List<OrganizationResponse>> getFirstLevelOrgs() {
         List<Organization> orgs = organizationService.getFirstLevelOrgs();
         // 只返回激活状态的机构
@@ -42,9 +46,11 @@ public class OrganizationController {
 
     /**
      * 获取二级机构列表（根据一级机构ID）
+     * 人事专员和人事经理都可以访问（用于档案登记）
      */
     @GetMapping("/level2")
-    public ApiResponse<List<OrganizationResponse>> getSecondLevelOrgs(@RequestParam Long parentId) {
+    @RequireRole({"HR_MANAGER", "HR_SPECIALIST"})
+    public ApiResponse<List<OrganizationResponse>> getSecondLevelOrgs(@RequestParam("parentId") Long parentId) {
         List<Organization> orgs = organizationService.getSecondLevelOrgs(parentId);
         // 只返回激活状态的机构
         List<OrganizationResponse> responses = orgs.stream()
@@ -56,9 +62,11 @@ public class OrganizationController {
 
     /**
      * 获取三级机构列表（根据二级机构ID）
+     * 人事专员和人事经理都可以访问（用于档案登记）
      */
     @GetMapping("/level3")
-    public ApiResponse<List<OrganizationResponse>> getThirdLevelOrgs(@RequestParam Long parentId) {
+    @RequireRole({"HR_MANAGER", "HR_SPECIALIST"})
+    public ApiResponse<List<OrganizationResponse>> getThirdLevelOrgs(@RequestParam("parentId") Long parentId) {
         List<Organization> orgs = organizationService.getThirdLevelOrgs(parentId);
         // 只返回激活状态的机构
         List<OrganizationResponse> responses = orgs.stream()
@@ -72,7 +80,6 @@ public class OrganizationController {
      * 创建一级机构
      */
     @PostMapping("/level1")
-    @RequireRole({"HR_MANAGER", "SALARY_MANAGER"})
     public ApiResponse<OrganizationResponse> createFirstLevelOrg(@Valid @RequestBody CreateOrganizationRequest request) {
         // 验证机构编号唯一性
         ApiResponse<Void> validationResult = validateOrgCodeUnique(request.getOrgCode(), null, 1, null);
@@ -96,7 +103,6 @@ public class OrganizationController {
      * 创建二级机构
      */
     @PostMapping("/level2")
-    @RequireRole({"HR_MANAGER", "SALARY_MANAGER"})
     public ApiResponse<OrganizationResponse> createSecondLevelOrg(@Valid @RequestBody CreateOrganizationRequest request) {
         if (request.getParentId() == null) {
             return ApiResponse.error(400, "二级机构必须指定父机构（一级机构）");
@@ -130,7 +136,6 @@ public class OrganizationController {
      * 创建三级机构
      */
     @PostMapping("/level3")
-    @RequireRole({"HR_MANAGER", "SALARY_MANAGER"})
     public ApiResponse<OrganizationResponse> createThirdLevelOrg(@Valid @RequestBody CreateOrganizationRequest request) {
         if (request.getParentId() == null) {
             return ApiResponse.error(400, "三级机构必须指定父机构（二级机构）");
@@ -164,8 +169,7 @@ public class OrganizationController {
      * 更新机构信息
      */
     @PutMapping("/{orgId}")
-    @RequireRole({"HR_MANAGER", "SALARY_MANAGER"})
-    public ApiResponse<OrganizationResponse> updateOrg(@PathVariable Long orgId,
+    public ApiResponse<OrganizationResponse> updateOrg(@PathVariable("orgId") Long orgId,
                                                          @Valid @RequestBody UpdateOrganizationRequest request) {
         try {
             Organization org = organizationService.getById(orgId);
@@ -214,8 +218,7 @@ public class OrganizationController {
      * 删除机构（软删除，设置状态为INACTIVE）
      */
     @DeleteMapping("/{orgId}")
-    @RequireRole({"HR_MANAGER", "SALARY_MANAGER"})
-    public ApiResponse<Void> deleteOrg(@PathVariable Long orgId) {
+    public ApiResponse<Void> deleteOrg(@PathVariable("orgId") Long orgId) {
         Organization org = organizationService.getById(orgId);
         if (org == null) {
             return ApiResponse.error(404, "机构不存在");

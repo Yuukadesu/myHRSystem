@@ -38,7 +38,9 @@ public class AuthServiceImpl implements AuthService {
         }
 
         // 2. 验证密码
-        if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
+        boolean passwordMatches = passwordEncoder.matches(request.getPassword(), user.getPassword());
+        log.debug("密码验证 - 用户名: {}, 验证结果: {}", request.getUsername(), passwordMatches);
+        if (!passwordMatches) {
             throw new AuthenticationException("用户名或密码错误");
         }
 
@@ -78,7 +80,6 @@ public class AuthServiceImpl implements AuthService {
     public void logout(String token) {
         // TODO: 实现Token黑名单机制（可选）
         // 可以将Token添加到Redis黑名单中，在Token验证时检查
-        log.info("用户登出，Token: {}", token);
     }
 
     @Override

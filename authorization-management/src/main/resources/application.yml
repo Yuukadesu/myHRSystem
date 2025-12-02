@@ -1,5 +1,5 @@
 server:
-  port: 8081
+  port: 8080
 
 spring:
   application:
@@ -8,14 +8,17 @@ spring:
     driver-class-name: com.mysql.cj.jdbc.Driver
     url: jdbc:mysql://localhost:3306/myHRSystem?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai
     username: root
-    password: root
+    password: 123456
   sql:
     init:
-      mode: never
+      mode: never  # 禁用自动数据库初始化检测
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.sql.init.SqlInitializationAutoConfiguration
 
 # JWT配置
 jwt:
-  secret: myHRSystemSecretKeyForJWTTokenGeneration2024PleaseChangeInProduction
+  secret: myHRSystemSecretKeyForJWTTokenGeneration2024PleaseChangeInProductionEnvironmentThisIsALongSecretKeyForHS512Algorithm
   expiration: 3600000 # Access Token过期时间：1小时（毫秒）
   refresh-expiration: 604800000 # Refresh Token过期时间：7天（毫秒）
 

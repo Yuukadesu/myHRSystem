@@ -201,10 +201,14 @@ public class EmployeeArchiveManagementService {
      */
     @Transactional(rollbackFor = Exception.class)
     public EmployeeArchiveResponse approveReview(Long archiveId, ReviewApproveRequest request, Long reviewerId) {
+        // 复核意见可以为空（根据模板要求，不需要复核意见）
+        String reviewComments = request.getReviewComments() != null && !request.getReviewComments().trim().isEmpty() 
+                ? request.getReviewComments().trim() 
+                : null;
         boolean success = employeeArchiveService.approveReview(
                 archiveId,
                 reviewerId,
-                request.getReviewComments()
+                reviewComments
         );
 
         if (!success) {
@@ -338,11 +342,15 @@ public class EmployeeArchiveManagementService {
         }
 
         // 执行复核：更新档案信息并将状态从 PENDING_REVIEW 改为 NORMAL
+        // 复核意见可以为空（根据模板要求，不需要复核意见）
+        String reviewComments = request.getReviewComments() != null && !request.getReviewComments().trim().isEmpty() 
+                ? request.getReviewComments().trim() 
+                : null;
         boolean success = employeeArchiveService.approveReviewWithUpdate(
                 archiveId,
                 updatedArchive,
                 reviewerId,
-                request.getReviewComments() != null ? request.getReviewComments() : "复核通过"
+                reviewComments
         );
 
         if (!success) {

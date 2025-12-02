@@ -239,5 +239,10 @@ public class EmployeeArchiveResponse {
      * 删除原因
      */
     private String deleteReason;
+
+    /**
+     * 更新时间
+     */
+    private LocalDateTime updateTime;
 }
 

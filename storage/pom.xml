@@ -42,6 +42,13 @@
             <groupId>com.baomidou</groupId>
             <artifactId>mybatis-plus-boot-starter</artifactId>
         </dependency>
+        
+        <!-- MyBatis-Spring 3.0.5 (兼容Spring Boot 3.3.5) -->
+        <dependency>
+            <groupId>org.mybatis</groupId>
+            <artifactId>mybatis-spring</artifactId>
+            <version>3.0.5</version>
+        </dependency>
 
         <!-- Lombok -->
         <dependency>

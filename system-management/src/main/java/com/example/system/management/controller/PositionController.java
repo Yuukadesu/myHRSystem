@@ -20,10 +20,12 @@ import java.util.stream.Collectors;
 
 /**
  * 职位设置 Controller
+ * 只有人力资源经理可以访问
  */
 @RestController
 @RequestMapping("/api/positions")
 @RequiredArgsConstructor
+@RequireRole({"HR_MANAGER"})
 public class PositionController {
 
     private final PositionService positionService;
@@ -31,9 +33,11 @@ public class PositionController {
 
     /**
      * 获取职位列表，支持按三级机构筛选
+     * 人事专员、人事经理、薪酬专员和薪酬经理都可以访问（用于档案登记和薪酬标准登记）
      */
     @GetMapping
-    public ApiResponse<List<PositionResponse>> getPositions(@RequestParam(required = false) Long thirdOrgId) {
+    @RequireRole({"HR_MANAGER", "HR_SPECIALIST", "SALARY_SPECIALIST", "SALARY_MANAGER"})
+    public ApiResponse<List<PositionResponse>> getPositions(@RequestParam(value = "thirdOrgId", required = false) Long thirdOrgId) {
         List<Position> positions;
         if (thirdOrgId != null) {
             positions = positionService.getByThirdOrgId(thirdOrgId);
@@ -51,9 +55,11 @@ public class PositionController {
 
     /**
      * 获取职位详情
+     * 人事专员、人事经理、薪酬专员和薪酬经理都可以访问（用于档案登记和薪酬标准登记）
      */
     @GetMapping("/{positionId}")
-    public ApiResponse<PositionResponse> getPosition(@PathVariable Long positionId) {
+    @RequireRole({"HR_MANAGER", "HR_SPECIALIST", "SALARY_SPECIALIST", "SALARY_MANAGER"})
+    public ApiResponse<PositionResponse> getPosition(@PathVariable("positionId") Long positionId) {
         Position position = positionService.getById(positionId);
         if (position == null) {
             return ApiResponse.error(404, "职位不存在");
@@ -65,7 +71,6 @@ public class PositionController {
      * 创建职位
      */
     @PostMapping
-    @RequireRole({"HR_MANAGER", "SALARY_MANAGER"})
     public ApiResponse<PositionResponse> createPosition(@Valid @RequestBody CreatePositionRequest request) {
         // 验证三级机构是否存在且为激活状态
         Organization thirdOrg = organizationService.getById(request.getThirdOrgId());
@@ -93,8 +98,7 @@ public class PositionController {
      * 更新职位
      */
     @PutMapping("/{positionId}")
-    @RequireRole({"HR_MANAGER", "SALARY_MANAGER"})
-    public ApiResponse<PositionResponse> updatePosition(@PathVariable Long positionId,
+    public ApiResponse<PositionResponse> updatePosition(@PathVariable("positionId") Long positionId,
                                                          @Valid @RequestBody UpdatePositionRequest request) {
         Position position = positionService.getById(positionId);
         if (position == null) {
@@ -116,8 +120,7 @@ public class PositionController {
      * 删除职位（软删除）
      */
     @DeleteMapping("/{positionId}")
-    @RequireRole({"HR_MANAGER", "SALARY_MANAGER"})
-    public ApiResponse<Void> deletePosition(@PathVariable Long positionId) {
+    public ApiResponse<Void> deletePosition(@PathVariable("positionId") Long positionId) {
         Position position = positionService.getById(positionId);
         if (position == null) {
             return ApiResponse.error(404, "职位不存在");

@@ -63,7 +63,7 @@ public class EmployeeArchiveController {
     @PostMapping("/{archiveId}/photo")
     @RequireRole({"HR_SPECIALIST"})
     public ApiResponse<Map<String, String>> uploadPhoto(
-            @PathVariable Long archiveId,
+            @PathVariable("archiveId") Long archiveId,
             @RequestParam("file") MultipartFile file) {
         try {
             // 上传照片
@@ -122,15 +122,15 @@ public class EmployeeArchiveController {
     @GetMapping
     @RequireRole({"HR_SPECIALIST", "HR_MANAGER"})
     public ApiResponse<PageResponse<EmployeeArchiveResponse>> queryEmployeeArchives(
-            @RequestParam(required = false) Long firstOrgId,
-            @RequestParam(required = false) Long secondOrgId,
-            @RequestParam(required = false) Long thirdOrgId,
-            @RequestParam(required = false) Long positionId,
-            @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate startDate,
-            @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate endDate,
-            @RequestParam(required = false) String status,
-            @RequestParam(defaultValue = "1") Integer page,
-            @RequestParam(defaultValue = "10") Integer size) {
+            @RequestParam(value = "firstOrgId", required = false) Long firstOrgId,
+            @RequestParam(value = "secondOrgId", required = false) Long secondOrgId,
+            @RequestParam(value = "thirdOrgId", required = false) Long thirdOrgId,
+            @RequestParam(value = "positionId", required = false) Long positionId,
+            @RequestParam(value = "startDate", required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate startDate,
+            @RequestParam(value = "endDate", required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate endDate,
+            @RequestParam(value = "status", required = false) String status,
+            @RequestParam(value = "page", defaultValue = "1") Integer page,
+            @RequestParam(value = "size", defaultValue = "10") Integer size) {
         try {
             PageResponse<EmployeeArchiveResponse> response = employeeArchiveManagementService.queryEmployeeArchives(
                     firstOrgId,
@@ -160,8 +160,8 @@ public class EmployeeArchiveController {
     @GetMapping("/pending-review")
     @RequireRole({"HR_MANAGER"})
     public ApiResponse<PageResponse<EmployeeArchiveResponse>> getPendingReviewList(
-            @RequestParam(defaultValue = "1") Integer page,
-            @RequestParam(defaultValue = "10") Integer size) {
+            @RequestParam(value = "page", defaultValue = "1") Integer page,
+            @RequestParam(value = "size", defaultValue = "10") Integer size) {
         try {
             PageResponse<EmployeeArchiveResponse> response = employeeArchiveManagementService.getPendingReviewList(page, size);
             return ApiResponse.success("查询成功", response);
@@ -177,7 +177,7 @@ public class EmployeeArchiveController {
      * @return 响应
      */
     @GetMapping("/{archiveId}")
-    public ApiResponse<EmployeeArchiveResponse> getArchiveDetail(@PathVariable Long archiveId) {
+    public ApiResponse<EmployeeArchiveResponse> getArchiveDetail(@PathVariable("archiveId") Long archiveId) {
         try {
             EmployeeArchiveResponse response = employeeArchiveManagementService.getArchiveDetail(archiveId);
             return ApiResponse.success("查询成功", response);
@@ -197,7 +197,7 @@ public class EmployeeArchiveController {
     @PostMapping("/{archiveId}/review/approve")
     @RequireRole({"HR_MANAGER"})
     public ApiResponse<EmployeeArchiveResponse> approveReview(
-            @PathVariable Long archiveId,
+            @PathVariable("archiveId") Long archiveId,
             @RequestBody ReviewApproveRequest request) {
         try {
             // 获取当前登录用户ID
@@ -223,7 +223,7 @@ public class EmployeeArchiveController {
     @PutMapping("/{archiveId}/review")
     @RequireRole({"HR_MANAGER"})
     public ApiResponse<EmployeeArchiveResponse> approveReviewWithUpdate(
-            @PathVariable Long archiveId,
+            @PathVariable("archiveId") Long archiveId,
             @Valid @RequestBody ReviewWithUpdateRequest request) {
         try {
             // 获取当前登录用户ID
@@ -250,7 +250,7 @@ public class EmployeeArchiveController {
     @PutMapping("/{archiveId}")
     @RequireRole({"HR_SPECIALIST"})
     public ApiResponse<EmployeeArchiveResponse> updateEmployeeArchive(
-            @PathVariable Long archiveId,
+            @PathVariable("archiveId") Long archiveId,
             @Valid @RequestBody UpdateEmployeeArchiveRequest request) {
         try {
             // 更新员工档案
@@ -273,8 +273,8 @@ public class EmployeeArchiveController {
     @GetMapping("/deleted")
     @RequireRole({"HR_MANAGER"})
     public ApiResponse<PageResponse<EmployeeArchiveResponse>> getDeletedList(
-            @RequestParam(defaultValue = "1") Integer page,
-            @RequestParam(defaultValue = "10") Integer size) {
+            @RequestParam(value = "page", defaultValue = "1") Integer page,
+            @RequestParam(value = "size", defaultValue = "10") Integer size) {
         try {
             PageResponse<EmployeeArchiveResponse> response = employeeArchiveManagementService.getDeletedList(page, size);
             return ApiResponse.success("查询成功", response);
@@ -295,7 +295,7 @@ public class EmployeeArchiveController {
     @DeleteMapping("/{archiveId}")
     @RequireRole({"HR_MANAGER"})
     public ApiResponse<EmployeeArchiveResponse> deleteEmployeeArchive(
-            @PathVariable Long archiveId,
+            @PathVariable("archiveId") Long archiveId,
             @RequestBody DeleteEmployeeArchiveRequest request) {
         try {
             // 删除员工档案
@@ -319,7 +319,7 @@ public class EmployeeArchiveController {
      */
     @PostMapping("/{archiveId}/restore")
     @RequireRole({"HR_MANAGER"})
-    public ApiResponse<EmployeeArchiveResponse> restoreEmployeeArchive(@PathVariable Long archiveId) {
+    public ApiResponse<EmployeeArchiveResponse> restoreEmployeeArchive(@PathVariable("archiveId") Long archiveId) {
         try {
             // 恢复员工档案
             EmployeeArchiveResponse response = employeeArchiveManagementService.restoreEmployeeArchive(archiveId);

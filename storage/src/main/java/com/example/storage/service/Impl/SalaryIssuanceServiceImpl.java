@@ -9,6 +9,7 @@ import com.example.common.dto.CreateSalaryIssuanceRequest;
 import com.example.common.dto.PendingRegistrationResponse;
 import com.example.common.dto.ReviewApproveIssuanceRequest;
 import com.example.common.dto.SalaryIssuanceDetailRequest;
+import com.example.common.dto.SalaryIssuanceDetailResponse;
 import com.example.common.dto.SalaryIssuanceDetailUpdateRequest;
 import com.example.common.entity.*;
 import com.example.common.enums.EmployeeArchiveStatus;
@@ -25,6 +26,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.YearMonth;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -55,7 +57,37 @@ public class SalaryIssuanceServiceImpl extends ServiceImpl<SalaryIssuanceMapper,
         LambdaQueryWrapper<SalaryIssuance> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(SalaryIssuance::getThirdOrgId, thirdOrgId)
                .eq(SalaryIssuance::getIssuanceMonth, issuanceMonth);
-        return getOne(wrapper);
+        
+        // 查询所有匹配的记录
+        List<SalaryIssuance> issuances = list(wrapper);
+        
+        if (issuances.isEmpty()) {
+            return null;
+        }
+        
+        // 如果只有一条记录，直接返回
+        if (issuances.size() == 1) {
+            return issuances.get(0);
+        }
+        
+        // 如果存在多条记录，优先返回可编辑状态的记录
+        // 优先级：PENDING_REGISTRATION > PENDING_REVIEW > 其他
+        for (SalaryIssuance issuance : issuances) {
+            String status = issuance.getStatus();
+            if (SalaryIssuanceStatus.PENDING_REGISTRATION.getCode().equals(status)) {
+                return issuance;
+            }
+        }
+        
+        for (SalaryIssuance issuance : issuances) {
+            String status = issuance.getStatus();
+            if (SalaryIssuanceStatus.PENDING_REVIEW.getCode().equals(status)) {
+                return issuance;
+            }
+        }
+        
+        // 如果没有可编辑状态的记录，返回第一条（可能是EXECUTED或PAID）
+        return issuances.get(0);
     }
 
     @Override
@@ -89,38 +121,137 @@ public class SalaryIssuanceServiceImpl extends ServiceImpl<SalaryIssuanceMapper,
 
     @Override
     public List<PendingRegistrationResponse> getPendingRegistrationList(String issuanceMonth, Long thirdOrgId) {
-        // 解析发放月份
-        LocalDate monthDate;
-        if (issuanceMonth != null && !issuanceMonth.trim().isEmpty()) {
-            YearMonth yearMonth = YearMonth.parse(issuanceMonth);
-            monthDate = yearMonth.atDay(1);
-        } else {
-            monthDate = LocalDate.now().withDayOfMonth(1);
-        }
-
-        // 获取所有三级机构
-        List<Organization> thirdOrgs;
-        if (thirdOrgId != null) {
-            Organization org = organizationService.getById(thirdOrgId);
-            if (org != null && org.getOrgLevel() == 3) {
-                thirdOrgs = List.of(org);
-            } else {
-                thirdOrgs = new ArrayList<>();
-            }
-        } else {
-            thirdOrgs = organizationService.getByOrgLevel(3);
-        }
-
         List<PendingRegistrationResponse> result = new ArrayList<>();
 
-        for (Organization thirdOrg : thirdOrgs) {
-            // 检查该机构该月份是否已有薪酬发放单
-            SalaryIssuance existing = getByThirdOrgIdAndMonth(thirdOrg.getOrgId(), monthDate);
-            if (existing != null && !SalaryIssuanceStatus.PENDING_REGISTRATION.getCode().equals(existing.getStatus())) {
-                // 已登记或已复核，跳过
-                continue;
+        // 如果指定了月份，只查询该月份
+        if (issuanceMonth != null && !issuanceMonth.trim().isEmpty()) {
+            YearMonth yearMonth = YearMonth.parse(issuanceMonth);
+            LocalDate monthDate = yearMonth.atDay(1);
+
+            // 获取所有三级机构
+            List<Organization> thirdOrgs;
+            if (thirdOrgId != null) {
+                Organization org = organizationService.getById(thirdOrgId);
+                if (org != null && org.getOrgLevel() == 3) {
+                    thirdOrgs = List.of(org);
+                } else {
+                    thirdOrgs = new ArrayList<>();
+                }
+            } else {
+                thirdOrgs = organizationService.getByOrgLevel(3);
             }
 
+            for (Organization thirdOrg : thirdOrgs) {
+                // 检查该机构该月份是否已有薪酬发放单
+                SalaryIssuance existing = getByThirdOrgIdAndMonth(thirdOrg.getOrgId(), monthDate);
+                // 只显示待登记和待复核状态的记录
+                if (existing != null && 
+                    !SalaryIssuanceStatus.PENDING_REGISTRATION.getCode().equals(existing.getStatus()) &&
+                    !SalaryIssuanceStatus.PENDING_REVIEW.getCode().equals(existing.getStatus())) {
+                    // 已执行或已付款，跳过
+                    continue;
+                }
+
+                PendingRegistrationResponse response = buildPendingRegistrationResponse(thirdOrg, existing, monthDate);
+                if (response != null) {
+                    response.setIssuanceMonth(monthDate);
+                    result.add(response);
+                }
+            }
+        } else {
+            // 如果没有指定月份，查询所有待复核状态的薪酬发放单
+            LambdaQueryWrapper<SalaryIssuance> wrapper = new LambdaQueryWrapper<>();
+            wrapper.in(SalaryIssuance::getStatus, 
+                    SalaryIssuanceStatus.PENDING_REGISTRATION.getCode(),
+                    SalaryIssuanceStatus.PENDING_REVIEW.getCode());
+            if (thirdOrgId != null) {
+                wrapper.eq(SalaryIssuance::getThirdOrgId, thirdOrgId);
+            }
+            List<SalaryIssuance> issuances = list(wrapper);
+
+            // 按机构分组，每个机构只显示一条记录（优先显示待复核的）
+            Map<Long, SalaryIssuance> orgIssuanceMap = new HashMap<>();
+            for (SalaryIssuance issuance : issuances) {
+                Long orgId = issuance.getThirdOrgId();
+                if (!orgIssuanceMap.containsKey(orgId) || 
+                    SalaryIssuanceStatus.PENDING_REVIEW.getCode().equals(issuance.getStatus())) {
+                    orgIssuanceMap.put(orgId, issuance);
+                }
+            }
+
+            // 构建响应
+            for (Map.Entry<Long, SalaryIssuance> entry : orgIssuanceMap.entrySet()) {
+                Organization thirdOrg = organizationService.getById(entry.getKey());
+                if (thirdOrg != null) {
+                    SalaryIssuance issuance = entry.getValue();
+                    PendingRegistrationResponse response = new PendingRegistrationResponse();
+                    response.setThirdOrgId(thirdOrg.getOrgId());
+                    response.setThirdOrgName(thirdOrg.getOrgName());
+                    response.setTotalEmployees(issuance.getTotalEmployees());
+                    response.setTotalBasicSalary(issuance.getTotalBasicSalary());
+                    response.setStatus(issuance.getStatus());
+                    response.setSalarySlipNumber(issuance.getSalarySlipNumber());
+                    response.setIssuanceMonth(issuance.getIssuanceMonth());
+                    response.setOrgFullPath(buildOrgFullPath(thirdOrg));
+                    result.add(response);
+                }
+            }
+
+            // 对于没有薪酬发放单但需要登记的机构，也添加进去
+            // 但需要排除已有 EXECUTED 或 PAID 状态记录的机构
+            List<Organization> thirdOrgs;
+            if (thirdOrgId != null) {
+                Organization org = organizationService.getById(thirdOrgId);
+                if (org != null && org.getOrgLevel() == 3) {
+                    thirdOrgs = List.of(org);
+                } else {
+                    thirdOrgs = new ArrayList<>();
+                }
+            } else {
+                thirdOrgs = organizationService.getByOrgLevel(3);
+            }
+
+            for (Organization thirdOrg : thirdOrgs) {
+                if (!orgIssuanceMap.containsKey(thirdOrg.getOrgId())) {
+                    // 检查该机构当前月份是否已有 EXECUTED 或 PAID 状态的记录
+                    LocalDate currentMonth = LocalDate.now().withDayOfMonth(1);
+                    SalaryIssuance existing = getByThirdOrgIdAndMonth(thirdOrg.getOrgId(), currentMonth);
+                    
+                    // 如果已存在且状态是 EXECUTED 或 PAID，跳过（不需要再登记）
+                    if (existing != null && 
+                        (SalaryIssuanceStatus.EXECUTED.getCode().equals(existing.getStatus()) ||
+                         SalaryIssuanceStatus.PAID.getCode().equals(existing.getStatus()))) {
+                        continue;
+                    }
+                    
+                    // 检查该机构当前月份是否有待登记的需求
+                    PendingRegistrationResponse response = buildPendingRegistrationResponse(thirdOrg, existing, currentMonth);
+                    if (response != null) {
+                        response.setIssuanceMonth(currentMonth);
+                        result.add(response);
+                    }
+                }
+            }
+        }
+
+        return result;
+    }
+
+    /**
+     * 构建待登记响应对象
+     */
+    private PendingRegistrationResponse buildPendingRegistrationResponse(Organization thirdOrg, SalaryIssuance existing, LocalDate monthDate) {
+        PendingRegistrationResponse response = new PendingRegistrationResponse();
+        response.setThirdOrgId(thirdOrg.getOrgId());
+        response.setThirdOrgName(thirdOrg.getOrgName());
+        
+        // 如果已存在记录且状态是待复核，使用已存在记录的数据
+        if (existing != null && SalaryIssuanceStatus.PENDING_REVIEW.getCode().equals(existing.getStatus())) {
+            response.setTotalEmployees(existing.getTotalEmployees());
+            response.setTotalBasicSalary(existing.getTotalBasicSalary());
+            response.setStatus(existing.getStatus());
+            response.setSalarySlipNumber(existing.getSalarySlipNumber());
+        } else {
             // 查询该机构下正常状态的员工
             List<EmployeeArchive> employees = employeeArchiveService.getByThirdOrgId(thirdOrg.getOrgId());
             employees = employees.stream()
@@ -129,7 +260,7 @@ public class SalaryIssuanceServiceImpl extends ServiceImpl<SalaryIssuanceMapper,
                     .collect(Collectors.toList());
 
             if (employees.isEmpty()) {
-                continue;
+                return null;
             }
 
             // 计算基本工资总额
@@ -151,24 +282,19 @@ public class SalaryIssuanceServiceImpl extends ServiceImpl<SalaryIssuanceMapper,
                 }
             }
 
-            PendingRegistrationResponse response = new PendingRegistrationResponse();
-            response.setThirdOrgId(thirdOrg.getOrgId());
-            response.setThirdOrgName(thirdOrg.getOrgName());
             response.setTotalEmployees(employees.size());
             response.setTotalBasicSalary(totalBasicSalary);
             response.setStatus(existing != null ? existing.getStatus() : SalaryIssuanceStatus.PENDING_REGISTRATION.getCode());
             if (existing != null) {
                 response.setSalarySlipNumber(existing.getSalarySlipNumber());
             }
-
-            // 构建机构全路径
-            String orgFullPath = buildOrgFullPath(thirdOrg);
-            response.setOrgFullPath(orgFullPath);
-
-            result.add(response);
         }
 
-        return result;
+        // 构建机构全路径
+        String orgFullPath = buildOrgFullPath(thirdOrg);
+        response.setOrgFullPath(orgFullPath);
+
+        return response;
     }
 
     @Override
@@ -180,17 +306,52 @@ public class SalaryIssuanceServiceImpl extends ServiceImpl<SalaryIssuanceMapper,
 
         // 检查是否已存在
         SalaryIssuance existing = getByThirdOrgIdAndMonth(request.getThirdOrgId(), monthDate);
-        if (existing != null && !SalaryIssuanceStatus.PENDING_REGISTRATION.getCode().equals(existing.getStatus())) {
-            throw new RuntimeException("该机构该月份已存在薪酬发放单");
+        
+        // 检查是否存在不可编辑状态的记录
+        if (existing != null) {
+            String status = existing.getStatus();
+            // 只允许更新待登记或待复核状态的记录
+            if (!SalaryIssuanceStatus.PENDING_REGISTRATION.getCode().equals(status) &&
+                !SalaryIssuanceStatus.PENDING_REVIEW.getCode().equals(status)) {
+                // 检查是否还有其他可编辑的记录
+                LambdaQueryWrapper<SalaryIssuance> checkWrapper = new LambdaQueryWrapper<>();
+                checkWrapper.eq(SalaryIssuance::getThirdOrgId, request.getThirdOrgId())
+                           .eq(SalaryIssuance::getIssuanceMonth, monthDate)
+                           .in(SalaryIssuance::getStatus, 
+                               SalaryIssuanceStatus.PENDING_REGISTRATION.getCode(),
+                               SalaryIssuanceStatus.PENDING_REVIEW.getCode());
+                long editableCount = count(checkWrapper);
+                
+                if (editableCount > 0) {
+                    // 存在可编辑的记录，但getByThirdOrgIdAndMonth返回了不可编辑的记录
+                    // 这通常意味着存在重复数据，应该使用可编辑的记录
+                    existing = list(checkWrapper).get(0);
+                } else {
+                    // 确实存在不可编辑的记录，抛出异常
+                    throw new RuntimeException(String.format(
+                        "该机构该月份已存在薪酬发放单（状态：%s，单号：%s），无法修改。如需修改，请先删除或修改现有记录。",
+                        status, existing.getSalarySlipNumber() != null ? existing.getSalarySlipNumber() : "无"
+                    ));
+                }
+            }
         }
 
-        // 生成薪酬单号
-        String salarySlipNumber = generateSalarySlipNumber();
+        // 生成薪酬单号（如果不存在记录）
+        String salarySlipNumber;
+        if (existing != null && existing.getSalarySlipNumber() != null) {
+            // 使用已存在的薪酬单号
+            salarySlipNumber = existing.getSalarySlipNumber();
+        } else {
+            // 生成新的薪酬单号
+            salarySlipNumber = generateSalarySlipNumber();
+        }
 
         SalaryIssuance issuance;
         if (existing != null) {
             issuance = existing;
             issuance.setSalarySlipNumber(salarySlipNumber);
+            // 更新状态为待复核
+            issuance.setStatus(SalaryIssuanceStatus.PENDING_REVIEW.getCode());
         } else {
             issuance = new SalaryIssuance();
             issuance.setSalarySlipNumber(salarySlipNumber);
@@ -533,6 +694,85 @@ public class SalaryIssuanceServiceImpl extends ServiceImpl<SalaryIssuanceMapper,
         }
 
         return firstOrg.getOrgName() + "/" + secondOrg.getOrgName() + "/" + thirdOrg.getOrgName();
+    }
+
+    @Override
+    public List<SalaryIssuanceDetailResponse> getRegistrationDetails(Long thirdOrgId, String issuanceMonth) {
+        // 解析发放月份
+        LocalDate monthDate;
+        if (issuanceMonth != null && !issuanceMonth.trim().isEmpty()) {
+            YearMonth yearMonth = YearMonth.parse(issuanceMonth);
+            monthDate = yearMonth.atDay(1);
+        } else {
+            monthDate = LocalDate.now().withDayOfMonth(1);
+        }
+
+        // 检查是否已存在薪酬发放单（待复核状态）
+        SalaryIssuance existing = getByThirdOrgIdAndMonth(thirdOrgId, monthDate);
+        if (existing != null && SalaryIssuanceStatus.PENDING_REVIEW.getCode().equals(existing.getStatus())) {
+            // 如果已存在待复核状态的记录，返回已保存的明细
+            List<SalaryIssuanceDetail> details = salaryIssuanceDetailService.getByIssuanceId(existing.getIssuanceId());
+            return details.stream().map(detail -> {
+                SalaryIssuanceDetailResponse response = new SalaryIssuanceDetailResponse();
+                response.setDetailId(detail.getDetailId());
+                response.setEmployeeId(detail.getEmployeeId());
+                response.setEmployeeNumber(detail.getEmployeeNumber());
+                response.setEmployeeName(detail.getEmployeeName());
+                response.setPositionName(detail.getPositionName());
+                response.setBasicSalary(detail.getBasicSalary());
+                response.setPerformanceBonus(detail.getPerformanceBonus());
+                response.setTransportationAllowance(detail.getTransportationAllowance());
+                response.setMealAllowance(detail.getMealAllowance());
+                response.setPensionInsurance(detail.getPensionInsurance());
+                response.setMedicalInsurance(detail.getMedicalInsurance());
+                response.setUnemploymentInsurance(detail.getUnemploymentInsurance());
+                response.setHousingFund(detail.getHousingFund());
+                response.setAwardAmount(detail.getAwardAmount());
+                response.setDeductionAmount(detail.getDeductionAmount());
+                response.setTotalIncome(detail.getTotalIncome());
+                response.setTotalDeduction(detail.getTotalDeduction());
+                response.setNetPay(detail.getNetPay());
+                return response;
+            }).collect(Collectors.toList());
+        }
+
+        // 如果不存在或状态不是待复核，根据薪酬标准计算明细
+        List<EmployeeArchive> employees = employeeArchiveService.getByThirdOrgId(thirdOrgId);
+        employees = employees.stream()
+                .filter(e -> EmployeeArchiveStatus.NORMAL.getCode().equals(e.getStatus()))
+                .filter(e -> e.getSalaryStandardId() != null)
+                .collect(Collectors.toList());
+
+        List<com.example.common.dto.SalaryIssuanceDetailResponse> result = new ArrayList<>();
+
+        for (EmployeeArchive employee : employees) {
+            // 创建临时明细对象（不保存到数据库）
+            SalaryIssuanceDetail tempDetail = createSalaryIssuanceDetail(null, employee, BigDecimal.ZERO, BigDecimal.ZERO);
+            
+            // 转换为响应对象
+            SalaryIssuanceDetailResponse response = new SalaryIssuanceDetailResponse();
+            response.setEmployeeId(tempDetail.getEmployeeId());
+            response.setEmployeeNumber(tempDetail.getEmployeeNumber());
+            response.setEmployeeName(tempDetail.getEmployeeName());
+            response.setPositionName(tempDetail.getPositionName());
+            response.setBasicSalary(tempDetail.getBasicSalary());
+            response.setPerformanceBonus(tempDetail.getPerformanceBonus());
+            response.setTransportationAllowance(tempDetail.getTransportationAllowance());
+            response.setMealAllowance(tempDetail.getMealAllowance());
+            response.setPensionInsurance(tempDetail.getPensionInsurance());
+            response.setMedicalInsurance(tempDetail.getMedicalInsurance());
+            response.setUnemploymentInsurance(tempDetail.getUnemploymentInsurance());
+            response.setHousingFund(tempDetail.getHousingFund());
+            response.setAwardAmount(BigDecimal.ZERO);
+            response.setDeductionAmount(BigDecimal.ZERO);
+            response.setTotalIncome(tempDetail.getTotalIncome());
+            response.setTotalDeduction(tempDetail.getTotalDeduction());
+            response.setNetPay(tempDetail.getNetPay());
+            
+            result.add(response);
+        }
+
+        return result;
     }
 }
 

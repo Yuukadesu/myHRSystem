@@ -2,6 +2,7 @@ package com.example.common.util;
 
 import com.example.common.entity.User;
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import lombok.extern.slf4j.Slf4j;
@@ -125,9 +126,37 @@ public class JwtUtil {
         try {
             Claims claims = getClaimsFromToken(token);
             return !claims.getExpiration().before(new Date());
+        } catch (ExpiredJwtException e) {
+            log.warn("Token已过期: {}", e.getMessage());
+            return false;
         } catch (Exception e) {
             log.error("Token验证失败: {}", e.getMessage());
             return false;
+        }
+    }
+
+    /**
+     * 验证Token是否有效，如果无效则返回错误信息
+     * @param token Token字符串
+     * @return 如果token有效返回null，否则返回错误信息
+     */
+    public String validateTokenWithMessage(String token) {
+        if (token == null || token.trim().isEmpty()) {
+            return "Token不能为空";
+        }
+        try {
+            Claims claims = getClaimsFromToken(token);
+            Date expiration = claims.getExpiration();
+            if (expiration.before(new Date())) {
+                return "Token已过期";
+            }
+            return null; // Token有效
+        } catch (ExpiredJwtException e) {
+            log.warn("Token已过期: {}", e.getMessage());
+            return "Token已过期，请重新登录或刷新Token";
+        } catch (Exception e) {
+            log.error("Token验证失败: {}", e.getMessage());
+            return "Token无效或格式错误";
         }
     }
 
