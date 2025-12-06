@@ -1,0 +1,225 @@
+import React, { useState, useEffect } from 'react'
+import { Form, Input, Select, Button, Table, message, Card, Space } from 'antd'
+import { PlusOutlined, DeleteOutlined, SearchOutlined } from '@ant-design/icons'
+import { salaryStandardService } from '../../services/salaryStandardService'
+import { salaryItemService } from '../../services/salaryItemService'
+import { Modal } from 'antd'
+
+const SalaryStandardUpdate = () => {
+  const [form] = Form.useForm()
+  const [loading, setLoading] = useState(false)
+  const [searchForm] = Form.useForm()
+  const [salaryItems, setSalaryItems] = useState([])
+  const [items, setItems] = useState([])
+  const [standardId, setStandardId] = useState(null)
+  const [modalVisible, setModalVisible] = useState(false)
+
+  useEffect(() => {
+    loadSalaryItems()
+  }, [])
+
+  const loadSalaryItems = async () => {
+    try {
+      const response = await salaryItemService.getList()
+      if (response.code === 200) {
+        setSalaryItems(response.data || [])
+      }
+    } catch (error) {
+      console.error('加载薪酬项目失败:', error)
+    }
+  }
+
+  const handleSearch = async () => {
+    const values = searchForm.getFieldsValue()
+    if (!values.standardCode) {
+      message.warning('请输入标准编号')
+      return
+    }
+    
+    setLoading(true)
+    try {
+      // 这里需要通过标准编号查询标准详情
+      // 假设有一个通过编号查询的接口，如果没有需要先查询列表再过滤
+      const queryResponse = await salaryStandardService.query({
+        standardCode: values.standardCode
+      })
+      
+      if (queryResponse.code === 200 && queryResponse.data?.list?.length > 0) {
+        const standard = queryResponse.data.list[0]
+        if (standard.status !== 'APPROVED') {
+          message.warning('只能变更已通过的标准')
+          return
+        }
+        
+        const detailResponse = await salaryStandardService.getDetail(standard.standardId)
+        if (detailResponse.code === 200) {
+          const detail = detailResponse.data
+          setStandardId(detail.standardId)
+          form.setFieldsValue({
+            standardName: detail.standardName
+          })
+          setItems(detail.items || [])
+          setModalVisible(true)
+        }
+      } else {
+        message.warning('未找到该标准')
+      }
+    } catch (error) {
+      message.error('查询失败')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleAddItem = () => {
+    setItems([...items, { itemId: null, amount: 0, isCalculated: false }])
+  }
+
+  const handleRemoveItem = (index) => {
+    const newItems = items.filter((_, i) => i !== index)
+    setItems(newItems)
+  }
+
+  const handleSubmit = async (values) => {
+    setLoading(true)
+    try {
+      const submitData = {
+        standardName: values.standardName,
+        items: items.map(item => ({
+          itemId: item.itemId,
+          amount: item.amount || 0,
+          isCalculated: item.isCalculated || false
+        }))
+      }
+      
+      const response = await salaryStandardService.update(standardId, submitData)
+      if (response.code === 200) {
+        message.success('变更成功，等待复核')
+        setModalVisible(false)
+        searchForm.resetFields()
+      } else {
+        message.error(response.message || '变更失败')
+      }
+    } catch (error) {
+      message.error('变更失败：' + (error.message || '未知错误'))
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const itemColumns = [
+    {
+      title: '薪酬项目',
+      dataIndex: 'itemId',
+      key: 'itemId',
+      render: (itemId, record, index) => (
+        <Select
+          style={{ width: '100%' }}
+          value={itemId}
+          onChange={(value) => {
+            const newItems = [...items]
+            newItems[index].itemId = value
+            setItems(newItems)
+          }}
+        >
+          {salaryItems.map(item => (
+            <Select.Option key={item.itemId} value={item.itemId}>
+              {item.itemName}
+            </Select.Option>
+          ))}
+        </Select>
+      )
+    },
+    {
+      title: '金额',
+      dataIndex: 'amount',
+      key: 'amount',
+      render: (amount, _, index) => (
+        <Input
+          type="number"
+          value={amount}
+          onChange={(e) => {
+            const newItems = [...items]
+            newItems[index].amount = parseFloat(e.target.value) || 0
+            setItems(newItems)
+          }}
+        />
+      )
+    },
+    {
+      title: '操作',
+      key: 'action',
+      render: (_, __, index) => (
+        <Button
+          type="link"
+          danger
+          icon={<DeleteOutlined />}
+          onClick={() => handleRemoveItem(index)}
+        >
+          删除
+        </Button>
+      )
+    }
+  ]
+
+  return (
+    <Card title="薪酬标准变更">
+      <Form form={searchForm} layout="inline" style={{ marginBottom: 16 }}>
+        <Form.Item
+          name="standardCode"
+          label="标准编号"
+          rules={[{ required: true, message: '请输入标准编号' }]}
+        >
+          <Input placeholder="请输入标准编号" style={{ width: 200 }} />
+        </Form.Item>
+        <Form.Item>
+          <Button type="primary" icon={<SearchOutlined />} onClick={handleSearch}>
+            查询
+          </Button>
+        </Form.Item>
+      </Form>
+
+      <Modal
+        title="变更薪酬标准"
+        open={modalVisible}
+        onOk={() => form.submit()}
+        onCancel={() => setModalVisible(false)}
+        width={800}
+      >
+        <Form
+          form={form}
+          layout="vertical"
+          onFinish={handleSubmit}
+        >
+          <Form.Item
+            name="standardName"
+            label="标准名称"
+            rules={[{ required: true, message: '请输入标准名称' }]}
+          >
+            <Input />
+          </Form.Item>
+
+          <div style={{ marginBottom: 16 }}>
+            <Space>
+              <span>薪酬项目明细：</span>
+              <Button type="dashed" icon={<PlusOutlined />} onClick={handleAddItem}>
+                添加项目
+              </Button>
+            </Space>
+          </div>
+
+          <Table
+            columns={itemColumns}
+            dataSource={items}
+            rowKey={(_, index) => index}
+            pagination={false}
+            style={{ marginBottom: 16 }}
+          />
+        </Form>
+      </Modal>
+    </Card>
+  )
+}
+
+export default SalaryStandardUpdate
+

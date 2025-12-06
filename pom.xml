@@ -5,7 +5,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.0.3</version>
+        <version>3.3.5</version>
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <groupId>com.example</groupId>
@@ -39,6 +39,7 @@
         <java.version>17</java.version>
         <!-- 数据库相关依赖版本 -->
         <mybatis-plus.version>3.5.7</mybatis-plus.version>
+        <mybatis-spring.version>3.0.5</mybatis-spring.version>
         <mysql.version>8.0.33</mysql.version>
         <!-- JWT 版本 -->
         <jwt.version>0.12.3</jwt.version>
@@ -58,6 +59,19 @@
                 <groupId>com.baomidou</groupId>
                 <artifactId>mybatis-plus-boot-starter</artifactId>
                 <version>${mybatis-plus.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>org.mybatis</groupId>
+                        <artifactId>mybatis-spring</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+            
+            <!-- MyBatis-Spring 3.0.5 (兼容Spring Boot 3.3.5) -->
+            <dependency>
+                <groupId>org.mybatis</groupId>
+                <artifactId>mybatis-spring</artifactId>
+                <version>${mybatis-spring.version}</version>
             </dependency>
 
             <!-- JWT -->
@@ -102,6 +116,7 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <configuration>
+                    <parameters>true</parameters>
                     <!-- 留空annotationProcessorPaths，让IDE从项目classpath读取处理器 -->
                     <!-- 这样IDEA不会把它标成lombok-unknown.jar -->
                 </configuration>

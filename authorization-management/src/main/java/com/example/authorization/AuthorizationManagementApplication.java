@@ -8,11 +8,13 @@ import org.springframework.boot.autoconfigure.validation.ValidationAutoConfigura
 /**
  * 权限管理服务启动类
  */
-@SpringBootApplication(scanBasePackages = "com.example",
-        exclude = {
-                ValidationAutoConfiguration.class,
-                PersistenceExceptionTranslationAutoConfiguration.class
-        })
+@SpringBootApplication(
+    scanBasePackages = "com.example",
+    exclude = {
+        ValidationAutoConfiguration.class,
+        PersistenceExceptionTranslationAutoConfiguration.class
+    }
+)
 public class AuthorizationManagementApplication {
 
     public static void main(String[] args) {

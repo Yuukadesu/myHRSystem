@@ -37,14 +37,23 @@ public class SalaryIssuanceController {
     @GetMapping("/pending-registration")
     @RequireRole({"SALARY_SPECIALIST"})
     public ApiResponse<List<PendingRegistrationResponse>> getPendingRegistrationList(
-            @RequestParam(required = false) String issuanceMonth,
-            @RequestParam(required = false) Long thirdOrgId) {
-        try {
-            List<PendingRegistrationResponse> list = salaryIssuanceService.getPendingRegistrationList(issuanceMonth, thirdOrgId);
-            return ApiResponse.success("查询成功", list);
-        } catch (Exception e) {
-            return ApiResponse.error(e.getMessage());
-        }
+            @RequestParam(value = "issuanceMonth", required = false) String issuanceMonth,
+            @RequestParam(value = "thirdOrgId", required = false) Long thirdOrgId) {
+        List<PendingRegistrationResponse> list = salaryIssuanceService.getPendingRegistrationList(issuanceMonth, thirdOrgId);
+        return ApiResponse.success("查询成功", list);
+    }
+
+    /**
+     * 获取用于登记的员工明细列表
+     * 根据三级机构ID和发放月份获取员工明细（包含薪酬标准信息）
+     */
+    @GetMapping("/registration-details")
+    @RequireRole({"SALARY_SPECIALIST"})
+    public ApiResponse<List<SalaryIssuanceDetailResponse>> getRegistrationDetails(
+            @RequestParam("thirdOrgId") Long thirdOrgId,
+            @RequestParam(value = "issuanceMonth", required = false) String issuanceMonth) {
+        List<SalaryIssuanceDetailResponse> details = salaryIssuanceService.getRegistrationDetails(thirdOrgId, issuanceMonth);
+        return ApiResponse.success("查询成功", details);
     }
 
     /**
@@ -54,20 +63,16 @@ public class SalaryIssuanceController {
     @PostMapping
     @RequireRole({"SALARY_SPECIALIST"})
     public ApiResponse<SalaryIssuanceResponse> createSalaryIssuance(@Valid @RequestBody CreateSalaryIssuanceRequest request) {
-        try {
-            // 获取当前登录用户ID作为登记人
-            Long registrarId = getCurrentUserId();
+        // 获取当前登录用户ID作为登记人
+        Long registrarId = getCurrentUserId();
 
-            // 创建薪酬发放单
-            SalaryIssuance issuance = salaryIssuanceService.createSalaryIssuance(request, registrarId);
+        // 创建薪酬发放单
+        SalaryIssuance issuance = salaryIssuanceService.createSalaryIssuance(request, registrarId);
 
-            // 转换为响应对象
-            SalaryIssuanceResponse response = convertToResponse(issuance);
+        // 转换为响应对象
+        SalaryIssuanceResponse response = convertToResponse(issuance);
 
-            return ApiResponse.success("登记成功", response);
-        } catch (Exception e) {
-            return ApiResponse.error(e.getMessage());
-        }
+        return ApiResponse.success("登记成功", response);
     }
 
     /**
@@ -75,18 +80,14 @@ public class SalaryIssuanceController {
      * 包含所有员工明细
      */
     @GetMapping("/{issuanceId}")
-    public ApiResponse<SalaryIssuanceResponse> getSalaryIssuance(@PathVariable Long issuanceId) {
-        try {
-            SalaryIssuance issuance = salaryIssuanceService.getById(issuanceId);
-            if (issuance == null) {
-                return ApiResponse.error(404, "薪酬发放单不存在");
-            }
-
-            SalaryIssuanceResponse response = convertToResponse(issuance);
-            return ApiResponse.success("查询成功", response);
-        } catch (Exception e) {
-            return ApiResponse.error(e.getMessage());
+    public ApiResponse<SalaryIssuanceResponse> getSalaryIssuance(@PathVariable("issuanceId") Long issuanceId) {
+        SalaryIssuance issuance = salaryIssuanceService.getById(issuanceId);
+        if (issuance == null) {
+            return ApiResponse.error(404, "薪酬发放单不存在");
         }
+
+        SalaryIssuanceResponse response = convertToResponse(issuance);
+        return ApiResponse.success("查询成功", response);
     }
 
     /**
@@ -96,24 +97,20 @@ public class SalaryIssuanceController {
     @GetMapping("/pending-review")
     @RequireRole({"SALARY_MANAGER"})
     public ApiResponse<PageResponse<SalaryIssuanceResponse>> getPendingReviewIssuances(
-            @RequestParam(defaultValue = "1") int page,
-            @RequestParam(defaultValue = "10") int size) {
-        try {
-            IPage<SalaryIssuance> pageResult = salaryIssuanceService.getPendingReviewPage(page, size);
+            @RequestParam(value = "page", defaultValue = "1") int page,
+            @RequestParam(value = "size", defaultValue = "10") int size) {
+        IPage<SalaryIssuance> pageResult = salaryIssuanceService.getPendingReviewPage(page, size);
 
-            List<SalaryIssuanceResponse> responses = pageResult.getRecords().stream()
-                    .map(this::convertToResponse)
-                    .collect(Collectors.toList());
+        List<SalaryIssuanceResponse> responses = pageResult.getRecords().stream()
+                .map(this::convertToResponse)
+                .collect(Collectors.toList());
 
-            PageResponse<SalaryIssuanceResponse> pageResponse = PageResponse.<SalaryIssuanceResponse>builder()
-                    .total(pageResult.getTotal())
-                    .list(responses)
-                    .build();
+        PageResponse<SalaryIssuanceResponse> pageResponse = PageResponse.<SalaryIssuanceResponse>builder()
+                .total(pageResult.getTotal())
+                .list(responses)
+                .build();
 
-            return ApiResponse.success("查询成功", pageResponse);
-        } catch (Exception e) {
-            return ApiResponse.error(e.getMessage());
-        }
+        return ApiResponse.success("查询成功", pageResponse);
     }
 
     /**
@@ -122,26 +119,22 @@ public class SalaryIssuanceController {
      */
     @PostMapping("/{issuanceId}/review/approve")
     @RequireRole({"SALARY_MANAGER"})
-    public ApiResponse<SalaryIssuanceResponse> approveReview(@PathVariable Long issuanceId,
+    public ApiResponse<SalaryIssuanceResponse> approveReview(@PathVariable("issuanceId") Long issuanceId,
                                                               @Valid @RequestBody ReviewApproveIssuanceRequest request) {
-        try {
-            // 获取当前登录用户ID作为复核人
-            Long reviewerId = getCurrentUserId();
+        // 获取当前登录用户ID作为复核人
+        Long reviewerId = getCurrentUserId();
 
-            // 复核通过
-            boolean success = salaryIssuanceService.approveReview(issuanceId, reviewerId, request);
-            if (!success) {
-                return ApiResponse.error("复核失败");
-            }
-
-            // 获取更新后的薪酬发放单
-            SalaryIssuance issuance = salaryIssuanceService.getById(issuanceId);
-            SalaryIssuanceResponse response = convertToResponse(issuance);
-
-            return ApiResponse.success("复核通过", response);
-        } catch (Exception e) {
-            return ApiResponse.error(e.getMessage());
+        // 复核通过
+        boolean success = salaryIssuanceService.approveReview(issuanceId, reviewerId, request);
+        if (!success) {
+            return ApiResponse.error(500, "复核失败");
         }
+
+        // 获取更新后的薪酬发放单
+        SalaryIssuance issuance = salaryIssuanceService.getById(issuanceId);
+        SalaryIssuanceResponse response = convertToResponse(issuance);
+
+        return ApiResponse.success("复核通过", response);
     }
 
     /**
@@ -150,26 +143,22 @@ public class SalaryIssuanceController {
      */
     @PostMapping("/{issuanceId}/review/reject")
     @RequireRole({"SALARY_MANAGER"})
-    public ApiResponse<SalaryIssuanceResponse> rejectReview(@PathVariable Long issuanceId,
+    public ApiResponse<SalaryIssuanceResponse> rejectReview(@PathVariable("issuanceId") Long issuanceId,
                                                              @Valid @RequestBody ReviewRejectRequest request) {
-        try {
-            // 获取当前登录用户ID作为复核人
-            Long reviewerId = getCurrentUserId();
+        // 获取当前登录用户ID作为复核人
+        Long reviewerId = getCurrentUserId();
 
-            // 复核驳回
-            boolean success = salaryIssuanceService.rejectReview(issuanceId, reviewerId, request.getRejectReason());
-            if (!success) {
-                return ApiResponse.error("驳回失败");
-            }
-
-            // 获取更新后的薪酬发放单
-            SalaryIssuance issuance = salaryIssuanceService.getById(issuanceId);
-            SalaryIssuanceResponse response = convertToResponse(issuance);
-
-            return ApiResponse.success("已驳回", response);
-        } catch (Exception e) {
-            return ApiResponse.error(e.getMessage());
+        // 复核驳回
+        boolean success = salaryIssuanceService.rejectReview(issuanceId, reviewerId, request.getRejectReason());
+        if (!success) {
+            return ApiResponse.error(500, "驳回失败");
         }
+
+        // 获取更新后的薪酬发放单
+        SalaryIssuance issuance = salaryIssuanceService.getById(issuanceId);
+        SalaryIssuanceResponse response = convertToResponse(issuance);
+
+        return ApiResponse.success("已驳回", response);
     }
 
     /**
@@ -178,34 +167,30 @@ public class SalaryIssuanceController {
      */
     @GetMapping
     public ApiResponse<PageResponse<SalaryIssuanceResponse>> querySalaryIssuances(
-            @RequestParam(required = false) String salarySlipNumber,
-            @RequestParam(required = false) String keyword,
-            @RequestParam(required = false) String startDate,
-            @RequestParam(required = false) String endDate,
-            @RequestParam(required = false) String status,
-            @RequestParam(required = false) Long thirdOrgId,
-            @RequestParam(defaultValue = "1") int page,
-            @RequestParam(defaultValue = "10") int size) {
-        try {
-            LocalDate start = startDate != null ? LocalDate.parse(startDate) : null;
-            LocalDate end = endDate != null ? LocalDate.parse(endDate) : null;
+            @RequestParam(value = "salarySlipNumber", required = false) String salarySlipNumber,
+            @RequestParam(value = "keyword", required = false) String keyword,
+            @RequestParam(value = "startDate", required = false) String startDate,
+            @RequestParam(value = "endDate", required = false) String endDate,
+            @RequestParam(value = "status", required = false) String status,
+            @RequestParam(value = "thirdOrgId", required = false) Long thirdOrgId,
+            @RequestParam(value = "page", defaultValue = "1") int page,
+            @RequestParam(value = "size", defaultValue = "10") int size) {
+        LocalDate start = startDate != null ? LocalDate.parse(startDate) : null;
+        LocalDate end = endDate != null ? LocalDate.parse(endDate) : null;
 
-            IPage<SalaryIssuance> pageResult = salaryIssuanceService.querySalaryIssuances(
-                    salarySlipNumber, keyword, start, end, status, thirdOrgId, page, size);
+        IPage<SalaryIssuance> pageResult = salaryIssuanceService.querySalaryIssuances(
+                salarySlipNumber, keyword, start, end, status, thirdOrgId, page, size);
 
-            List<SalaryIssuanceResponse> responses = pageResult.getRecords().stream()
-                    .map(this::convertToResponse)
-                    .collect(Collectors.toList());
+        List<SalaryIssuanceResponse> responses = pageResult.getRecords().stream()
+                .map(this::convertToResponse)
+                .collect(Collectors.toList());
 
-            PageResponse<SalaryIssuanceResponse> pageResponse = PageResponse.<SalaryIssuanceResponse>builder()
-                    .total(pageResult.getTotal())
-                    .list(responses)
-                    .build();
+        PageResponse<SalaryIssuanceResponse> pageResponse = PageResponse.<SalaryIssuanceResponse>builder()
+                .total(pageResult.getTotal())
+                .list(responses)
+                .build();
 
-            return ApiResponse.success("查询成功", pageResponse);
-        } catch (Exception e) {
-            return ApiResponse.error(e.getMessage());
-        }
+        return ApiResponse.success("查询成功", pageResponse);
     }
 
     /**

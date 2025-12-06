@@ -69,5 +69,16 @@ public class UserController {
         List<User> users = userService.getByStatus(status);
         return ApiResponse.success("查询成功", users);
     }
+
+    /**
+     * 获取所有激活状态的用户列表
+     * 薪酬专员和薪酬经理可以访问（用于选择制定人和登记人）
+     */
+    @GetMapping("/list")
+    @RequireRole({"SALARY_SPECIALIST", "SALARY_MANAGER", "HR_MANAGER"})
+    public ApiResponse<List<User>> getUserList() {
+        List<User> users = userService.getByStatus("ACTIVE");
+        return ApiResponse.success("查询成功", users);
+    }
 }
 

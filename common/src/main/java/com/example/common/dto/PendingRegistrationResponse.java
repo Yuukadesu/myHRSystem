@@ -3,6 +3,7 @@ package com.example.common.dto;
 import lombok.Data;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 
 /**
  * 待登记薪酬发放单响应DTO（按三级机构分组）
@@ -43,5 +44,10 @@ public class PendingRegistrationResponse {
      * 状态：PENDING_REGISTRATION(待登记), PENDING_REVIEW(待复核)
      */
     private String status;
+
+    /**
+     * 发放月份
+     */
+    private LocalDate issuanceMonth;
 }
 

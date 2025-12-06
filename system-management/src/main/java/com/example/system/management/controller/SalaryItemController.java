@@ -18,21 +18,25 @@ import java.util.stream.Collectors;
 
 /**
  * 薪酬项目设置 Controller
+ * 只有人力资源经理可以访问
  */
 @RestController
 @RequestMapping("/api/salary-items")
 @RequiredArgsConstructor
+@RequireRole({"HR_MANAGER"})
 public class SalaryItemController {
 
     private final SalaryItemService salaryItemService;
 
     /**
      * 获取薪酬项目列表
+     * 薪酬专员和薪酬经理也可以访问（用于薪酬标准登记）
      */
     @GetMapping
+    @RequireRole({"HR_MANAGER", "SALARY_SPECIALIST", "SALARY_MANAGER"})
     public ApiResponse<List<SalaryItemResponse>> getSalaryItems(
-            @RequestParam(required = false) String itemType,
-            @RequestParam(required = false) String status) {
+            @RequestParam(value = "itemType", required = false) String itemType,
+            @RequestParam(value = "status", required = false) String status) {
         List<SalaryItem> items;
         if (itemType != null) {
             items = salaryItemService.getByItemType(itemType);
@@ -59,9 +63,11 @@ public class SalaryItemController {
 
     /**
      * 获取薪酬项目详情
+     * 薪酬专员和薪酬经理也可以访问（用于薪酬标准登记）
      */
     @GetMapping("/{itemId}")
-    public ApiResponse<SalaryItemResponse> getSalaryItem(@PathVariable Long itemId) {
+    @RequireRole({"HR_MANAGER", "SALARY_SPECIALIST", "SALARY_MANAGER"})
+    public ApiResponse<SalaryItemResponse> getSalaryItem(@PathVariable("itemId") Long itemId) {
         SalaryItem item = salaryItemService.getById(itemId);
         if (item == null) {
             return ApiResponse.error(404, "薪酬项目不存在");
@@ -73,7 +79,6 @@ public class SalaryItemController {
      * 创建薪酬项目
      */
     @PostMapping
-    @RequireRole({"HR_MANAGER", "SALARY_MANAGER"})
     public ApiResponse<SalaryItemResponse> createSalaryItem(@Valid @RequestBody CreateSalaryItemRequest request) {
         // 验证项目编号唯一性
         SalaryItem existing = salaryItemService.getByItemCode(request.getItemCode());
@@ -97,8 +102,7 @@ public class SalaryItemController {
      * 更新薪酬项目
      */
     @PutMapping("/{itemId}")
-    @RequireRole({"HR_MANAGER", "SALARY_MANAGER"})
-    public ApiResponse<SalaryItemResponse> updateSalaryItem(@PathVariable Long itemId,
+    public ApiResponse<SalaryItemResponse> updateSalaryItem(@PathVariable("itemId") Long itemId,
                                                              @Valid @RequestBody UpdateSalaryItemRequest request) {
         SalaryItem item = salaryItemService.getById(itemId);
         if (item == null) {
@@ -123,8 +127,7 @@ public class SalaryItemController {
      * 删除薪酬项目（软删除）
      */
     @DeleteMapping("/{itemId}")
-    @RequireRole({"HR_MANAGER", "SALARY_MANAGER"})
-    public ApiResponse<Void> deleteSalaryItem(@PathVariable Long itemId) {
+    public ApiResponse<Void> deleteSalaryItem(@PathVariable("itemId") Long itemId) {
         SalaryItem item = salaryItemService.getById(itemId);
         if (item == null) {
             return ApiResponse.error(404, "薪酬项目不存在");

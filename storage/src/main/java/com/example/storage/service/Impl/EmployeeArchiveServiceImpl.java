@@ -197,12 +197,13 @@ public class EmployeeArchiveServiceImpl extends ServiceImpl<EmployeeArchiveMappe
         String secondCode = String.format("%02d", Integer.parseInt(secondOrg.getOrgCode()));
         String thirdCode = String.format("%02d", Integer.parseInt(thirdOrg.getOrgCode()));
 
-        // 查询同机构下当天的最大序号
+        // 查询同机构下当年的所有记录，找出最大序号
+        // 档案编号格式：年份4位+一级机构2位+二级机构2位+三级机构2位+序号2位
         LambdaQueryWrapper<EmployeeArchive> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(EmployeeArchive::getFirstOrgId, firstOrgId)
                .eq(EmployeeArchive::getSecondOrgId, secondOrgId)
                .eq(EmployeeArchive::getThirdOrgId, thirdOrgId)
-               .apply("DATE(create_time) = CURDATE()")
+               .likeRight(EmployeeArchive::getArchiveNumber, year + firstCode + secondCode + thirdCode)  // 匹配相同年份和机构编号
                .orderByDesc(EmployeeArchive::getArchiveNumber)
                .last("LIMIT 1");
 
@@ -212,9 +213,11 @@ public class EmployeeArchiveServiceImpl extends ServiceImpl<EmployeeArchiveMappe
         if (lastArchive != null && lastArchive.getArchiveNumber() != null) {
             // 从档案编号中提取序号（最后2位）
             String lastNumber = lastArchive.getArchiveNumber();
-            if (lastNumber.length() >= 2) {
+            if (lastNumber.length() >= 12) {
                 try {
-                    sequence = Integer.parseInt(lastNumber.substring(lastNumber.length() - 2)) + 1;
+                    // 档案编号格式：年份4位+一级机构2位+二级机构2位+三级机构2位+序号2位 = 12位
+                    String sequenceStr = lastNumber.substring(10);  // 提取最后2位
+                    sequence = Integer.parseInt(sequenceStr) + 1;
                 } catch (NumberFormatException e) {
                     sequence = 1;
                 }
@@ -352,7 +355,12 @@ public class EmployeeArchiveServiceImpl extends ServiceImpl<EmployeeArchiveMappe
         }
 
         // 状态条件
-        if (status != null && !status.isEmpty()) {
+        // 档案查询功能永远不显示已删除的档案
+        // 无论status参数是什么，都排除已删除状态的档案
+        wrapper.ne(EmployeeArchive::getStatus, EmployeeArchiveStatus.DELETED.getCode());
+        
+        // 如果指定了状态（且不是已删除状态），则按该状态查询
+        if (status != null && !status.isEmpty() && !EmployeeArchiveStatus.DELETED.getCode().equals(status)) {
             wrapper.eq(EmployeeArchive::getStatus, status);
         }
 

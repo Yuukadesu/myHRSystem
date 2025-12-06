@@ -53,20 +53,16 @@ public class SalaryStandardController {
     @PostMapping
     @RequireRole({"SALARY_SPECIALIST", "SALARY_MANAGER"})
     public ApiResponse<SalaryStandardResponse> createSalaryStandard(@Valid @RequestBody CreateSalaryStandardRequest request) {
-        try {
-            // 获取当前登录用户ID作为登记人
-            Long registrarId = getCurrentUserId();
+        // 获取当前登录用户ID作为登记人
+        Long registrarId = getCurrentUserId();
 
-            // 创建薪酬标准
-            SalaryStandard standard = salaryStandardService.createSalaryStandard(request, registrarId);
+        // 创建薪酬标准
+        SalaryStandard standard = salaryStandardService.createSalaryStandard(request, registrarId);
 
-            // 转换为响应对象
-            SalaryStandardResponse response = convertToResponse(standard);
+        // 转换为响应对象
+        SalaryStandardResponse response = convertToResponse(standard);
 
-            return ApiResponse.success("登记成功", response);
-        } catch (Exception e) {
-            return ApiResponse.error(e.getMessage());
-        }
+        return ApiResponse.success("登记成功", response);
     }
 
     /**
@@ -76,24 +72,20 @@ public class SalaryStandardController {
     @GetMapping("/pending-review")
     @RequireRole({"SALARY_MANAGER"})
     public ApiResponse<PageResponse<SalaryStandardResponse>> getPendingReviewStandards(
-            @RequestParam(defaultValue = "1") int page,
-            @RequestParam(defaultValue = "10") int size) {
-        try {
-            IPage<SalaryStandard> pageResult = salaryStandardService.getPendingReviewPage(page, size);
+            @RequestParam(value = "page", defaultValue = "1") int page,
+            @RequestParam(value = "size", defaultValue = "10") int size) {
+        IPage<SalaryStandard> pageResult = salaryStandardService.getPendingReviewPage(page, size);
 
-            List<SalaryStandardResponse> responses = pageResult.getRecords().stream()
-                    .map(this::convertToResponse)
-                    .collect(Collectors.toList());
+        List<SalaryStandardResponse> responses = pageResult.getRecords().stream()
+                .map(this::convertToResponse)
+                .collect(Collectors.toList());
 
-            PageResponse<SalaryStandardResponse> pageResponse = PageResponse.<SalaryStandardResponse>builder()
-                    .total(pageResult.getTotal())
-                    .list(responses)
-                    .build();
+        PageResponse<SalaryStandardResponse> pageResponse = PageResponse.<SalaryStandardResponse>builder()
+                .total(pageResult.getTotal())
+                .list(responses)
+                .build();
 
-            return ApiResponse.success("查询成功", pageResponse);
-        } catch (Exception e) {
-            return ApiResponse.error(e.getMessage());
-        }
+        return ApiResponse.success("查询成功", pageResponse);
     }
 
     /**
@@ -101,18 +93,14 @@ public class SalaryStandardController {
      * 包含所有薪酬项目明细
      */
     @GetMapping("/{standardId}")
-    public ApiResponse<SalaryStandardResponse> getSalaryStandard(@PathVariable Long standardId) {
-        try {
-            SalaryStandard standard = salaryStandardService.getById(standardId);
-            if (standard == null) {
-                return ApiResponse.error(404, "薪酬标准不存在");
-            }
-
-            SalaryStandardResponse response = convertToResponse(standard);
-            return ApiResponse.success("查询成功", response);
-        } catch (Exception e) {
-            return ApiResponse.error(e.getMessage());
+    public ApiResponse<SalaryStandardResponse> getSalaryStandard(@PathVariable("standardId") Long standardId) {
+        SalaryStandard standard = salaryStandardService.getById(standardId);
+        if (standard == null) {
+            return ApiResponse.error(404, "薪酬标准不存在");
         }
+
+        SalaryStandardResponse response = convertToResponse(standard);
+        return ApiResponse.success("查询成功", response);
     }
 
     /**
@@ -121,26 +109,22 @@ public class SalaryStandardController {
      */
     @PostMapping("/{standardId}/review/approve")
     @RequireRole({"SALARY_MANAGER"})
-    public ApiResponse<SalaryStandardResponse> approveReview(@PathVariable Long standardId,
+    public ApiResponse<SalaryStandardResponse> approveReview(@PathVariable("standardId") Long standardId,
                                                              @Valid @RequestBody ReviewApproveRequest request) {
-        try {
-            // 获取当前登录用户ID作为复核人
-            Long reviewerId = getCurrentUserId();
+        // 获取当前登录用户ID作为复核人
+        Long reviewerId = getCurrentUserId();
 
-            // 复核通过
-            boolean success = salaryStandardService.approveReview(standardId, reviewerId, request.getReviewComments());
-            if (!success) {
-                return ApiResponse.error("复核失败");
-            }
-
-            // 获取更新后的薪酬标准
-            SalaryStandard standard = salaryStandardService.getById(standardId);
-            SalaryStandardResponse response = convertToResponse(standard);
-
-            return ApiResponse.success("复核通过", response);
-        } catch (Exception e) {
-            return ApiResponse.error(e.getMessage());
+        // 复核通过
+        boolean success = salaryStandardService.approveReview(standardId, reviewerId, request.getReviewComments());
+        if (!success) {
+            return ApiResponse.error(500, "复核失败");
         }
+
+        // 获取更新后的薪酬标准
+        SalaryStandard standard = salaryStandardService.getById(standardId);
+        SalaryStandardResponse response = convertToResponse(standard);
+
+        return ApiResponse.success("复核通过", response);
     }
 
     /**
@@ -149,26 +133,22 @@ public class SalaryStandardController {
      */
     @PostMapping("/{standardId}/review/reject")
     @RequireRole({"SALARY_MANAGER"})
-    public ApiResponse<SalaryStandardResponse> rejectReview(@PathVariable Long standardId,
+    public ApiResponse<SalaryStandardResponse> rejectReview(@PathVariable("standardId") Long standardId,
                                                             @Valid @RequestBody ReviewRejectRequest request) {
-        try {
-            // 获取当前登录用户ID作为复核人
-            Long reviewerId = getCurrentUserId();
+        // 获取当前登录用户ID作为复核人
+        Long reviewerId = getCurrentUserId();
 
-            // 复核驳回
-            boolean success = salaryStandardService.rejectReview(standardId, reviewerId, request.getRejectReason());
-            if (!success) {
-                return ApiResponse.error("驳回失败");
-            }
-
-            // 获取更新后的薪酬标准
-            SalaryStandard standard = salaryStandardService.getById(standardId);
-            SalaryStandardResponse response = convertToResponse(standard);
-
-            return ApiResponse.success("已驳回", response);
-        } catch (Exception e) {
-            return ApiResponse.error(e.getMessage());
+        // 复核驳回
+        boolean success = salaryStandardService.rejectReview(standardId, reviewerId, request.getRejectReason());
+        if (!success) {
+            return ApiResponse.error(500, "驳回失败");
         }
+
+        // 获取更新后的薪酬标准
+        SalaryStandard standard = salaryStandardService.getById(standardId);
+        SalaryStandardResponse response = convertToResponse(standard);
+
+        return ApiResponse.success("已驳回", response);
     }
 
     /**
@@ -177,35 +157,31 @@ public class SalaryStandardController {
      */
     @GetMapping
     public ApiResponse<PageResponse<SalaryStandardResponse>> querySalaryStandards(
-            @RequestParam(required = false) String standardCode,
-            @RequestParam(required = false) String keyword,
-            @RequestParam(required = false) String startDate,
-            @RequestParam(required = false) String endDate,
-            @RequestParam(required = false) String status,
-            @RequestParam(required = false) Long positionId,
-            @RequestParam(required = false) String jobTitle,
-            @RequestParam(defaultValue = "1") int page,
-            @RequestParam(defaultValue = "10") int size) {
-        try {
-            LocalDate start = startDate != null ? LocalDate.parse(startDate) : null;
-            LocalDate end = endDate != null ? LocalDate.parse(endDate) : null;
+            @RequestParam(value = "standardCode", required = false) String standardCode,
+            @RequestParam(value = "keyword", required = false) String keyword,
+            @RequestParam(value = "startDate", required = false) String startDate,
+            @RequestParam(value = "endDate", required = false) String endDate,
+            @RequestParam(value = "status", required = false) String status,
+            @RequestParam(value = "positionId", required = false) Long positionId,
+            @RequestParam(value = "jobTitle", required = false) String jobTitle,
+            @RequestParam(value = "page", defaultValue = "1") int page,
+            @RequestParam(value = "size", defaultValue = "10") int size) {
+        LocalDate start = startDate != null ? LocalDate.parse(startDate) : null;
+        LocalDate end = endDate != null ? LocalDate.parse(endDate) : null;
 
-            IPage<SalaryStandard> pageResult = salaryStandardService.querySalaryStandards(
-                    standardCode, keyword, start, end, status, positionId, jobTitle, page, size);
+        IPage<SalaryStandard> pageResult = salaryStandardService.querySalaryStandards(
+                standardCode, keyword, start, end, status, positionId, jobTitle, page, size);
 
-            List<SalaryStandardResponse> responses = pageResult.getRecords().stream()
-                    .map(this::convertToResponse)
-                    .collect(Collectors.toList());
+        List<SalaryStandardResponse> responses = pageResult.getRecords().stream()
+                .map(this::convertToResponse)
+                .collect(Collectors.toList());
 
-            PageResponse<SalaryStandardResponse> pageResponse = PageResponse.<SalaryStandardResponse>builder()
-                    .total(pageResult.getTotal())
-                    .list(responses)
-                    .build();
+        PageResponse<SalaryStandardResponse> pageResponse = PageResponse.<SalaryStandardResponse>builder()
+                .total(pageResult.getTotal())
+                .list(responses)
+                .build();
 
-            return ApiResponse.success("查询成功", pageResponse);
-        } catch (Exception e) {
-            return ApiResponse.error(e.getMessage());
-        }
+        return ApiResponse.success("查询成功", pageResponse);
     }
 
     /**
@@ -214,19 +190,15 @@ public class SalaryStandardController {
      */
     @PutMapping("/{standardId}")
     @RequireRole({"SALARY_SPECIALIST", "SALARY_MANAGER"})
-    public ApiResponse<SalaryStandardResponse> updateSalaryStandard(@PathVariable Long standardId,
+    public ApiResponse<SalaryStandardResponse> updateSalaryStandard(@PathVariable("standardId") Long standardId,
                                                                     @Valid @RequestBody UpdateSalaryStandardRequest request) {
-        try {
-            // 更新薪酬标准
-            SalaryStandard standard = salaryStandardService.updateSalaryStandard(standardId, request);
+        // 更新薪酬标准
+        SalaryStandard standard = salaryStandardService.updateSalaryStandard(standardId, request);
 
-            // 转换为响应对象
-            SalaryStandardResponse response = convertToResponse(standard);
+        // 转换为响应对象
+        SalaryStandardResponse response = convertToResponse(standard);
 
-            return ApiResponse.success("更新成功，等待复核", response);
-        } catch (Exception e) {
-            return ApiResponse.error(e.getMessage());
-        }
+        return ApiResponse.success("更新成功，等待复核", response);
     }
 
     /**
@@ -235,19 +207,15 @@ public class SalaryStandardController {
      */
     @GetMapping("/by-position")
     public ApiResponse<SalaryStandardResponse> getSalaryStandardByPosition(
-            @RequestParam Long positionId,
-            @RequestParam String jobTitle) {
-        try {
-            SalaryStandard standard = salaryStandardService.getApprovedByPositionIdAndJobTitle(positionId, jobTitle);
-            if (standard == null) {
-                return ApiResponse.error(404, "未找到已通过的薪酬标准");
-            }
-
-            SalaryStandardResponse response = convertToResponse(standard);
-            return ApiResponse.success("查询成功", response);
-        } catch (Exception e) {
-            return ApiResponse.error(e.getMessage());
+            @RequestParam("positionId") Long positionId,
+            @RequestParam("jobTitle") String jobTitle) {
+        SalaryStandard standard = salaryStandardService.getApprovedByPositionIdAndJobTitle(positionId, jobTitle);
+        if (standard == null) {
+            return ApiResponse.error(404, "未找到已通过的薪酬标准");
         }
+
+        SalaryStandardResponse response = convertToResponse(standard);
+        return ApiResponse.success("查询成功", response);
     }
 
     /**
